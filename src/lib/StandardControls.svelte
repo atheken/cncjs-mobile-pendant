@@ -1,0 +1,14 @@
+<div>
+<button>
+	Home
+</button>
+<button>
+	E-STOP
+</button>
+<button>
+	Lock
+</button>
+<button>
+	Reset
+</button>
+</div>
