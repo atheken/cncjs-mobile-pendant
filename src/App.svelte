@@ -26,13 +26,14 @@
 	let c = new Controller();
 
 	let commands = [];
+	let serialports = [];
 
 	onMount(async ()=> {
 		let records = (await c.commands()).records;
 		console.info(records);
 		commands = records;
+		serialports = await c.ports
 	});
-
 </script>
 
 

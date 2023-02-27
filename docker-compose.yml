@@ -11,9 +11,15 @@ services:
       - .:/data
     entrypoint: "/start npm run build"
   cncjs:
-    image: atheken/cncjs
+    build: ./cncjs/container
     volumes:
-      - ./cncjs:/root/
+      - ./cncjs/data:/root/data
       - ./dist:/root/dist
+    depends_on:
+      - grbl-sim
     ports:
       - 8000:8000
+  grbl-sim:
+    image: atheken/grbl-sim
+    expose:
+      - 9600

@@ -7,12 +7,13 @@
             }
         }
     },
-    "ports": [],
-    "controller": "grbl",
-    "baudrates": [
-        115200,
-        250000
+    "ports": [
+        {
+            "path": "/dev/ttySIM",
+            "manufacturer": "grbl-sim"
+        }
     ],
+    "controller" : [ "Grbl" ],
     "watchDirectory": "/root/data/",
     "secret": "it's a testing secret",
     "macros": [],

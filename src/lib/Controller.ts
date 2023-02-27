@@ -13,19 +13,22 @@ export class MachineStatus {
     grbl_status: string | null
 }
 
-export class SerialDevice {
-    device_name: string
-    device_type = "grbl"
-    baud_rate: 4800 | 9600 | 115200
-    auto_connect: false
-    use_error_correction: false
+export class SerialPort {
+    path : string
+    manufacturer : string
 }
 
+export class StartupEvent {
+    loadedcontrollers : string[]
+    baudrates: number[]
+    ports: SerialPort[]
+}
 
 export class Controller {
 
     socket: Socket;
     token: Promise<string>
+    ports: Promise<SerialPort[]> = new Promise(f=>f)
 
     constructor(){
         this.token = new Promise(async (resolve, reject)=>{
@@ -42,8 +45,19 @@ export class Controller {
                 reject(err);
             }
         });
+
+        this.socket.on("startup",f => {
+            this.ports = this.ports.then(p=> (JSON.parse(f) as StartupEvent).ports);
+        });
+
+        this.socket.on("serialport:list", p=> this.ports = this.ports.then(f=> JSON.parse(p) as SerialPort[]))
+
         // get token from local storage or request
         // a new one from the socket.io server.
+    }
+
+    refresh_list() {
+        this.socket.emit("list");
     }
 
     async commands() : Promise<CommandQueryResult> {
@@ -57,10 +71,6 @@ export class Controller {
             console.error(err);
             throw err;
         }
-    }
-
-    async list_devices(): Promise<SerialDevice[]> {
-        return [];
     }
 }
 
