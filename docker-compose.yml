@@ -1,0 +1,19 @@
+services:
+  vite:
+    image: atheken/vite-dev
+    ports:
+      - 5173:5173
+      - 4173:4173
+    expose:
+      - 5173
+      - 4173
+    volumes:
+      - .:/data
+    entrypoint: "/start npm run build"
+  cncjs:
+    image: atheken/cncjs
+    volumes:
+      - ./cncjs:/root/
+      - ./dist:/root/dist
+    ports:
+      - 8000:8000

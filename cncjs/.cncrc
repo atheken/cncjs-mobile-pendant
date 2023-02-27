@@ -1,0 +1,122 @@
+{
+    "state": {
+        "checkForUpdates": false,
+        "controller": {
+            "exception": {
+                "ignoreErrors": false
+            }
+        }
+    },
+    "ports": [],
+    "controller": "grbl",
+    "baudrates": [
+        115200,
+        250000
+    ],
+    "watchDirectory": "/root/data/",
+    "secret": "it's a testing secret",
+    "macros": [],
+    "mountPoints" :[
+	{ 
+        "route" : "/mobile", "target" : "/root/dist"
+    }],
+    "mdi": [
+        {
+            "id": "fa91680e-6d2c-4491-8e49-e032b896992d",
+            "name": "Z-PROBE",
+            "command": "; Z-Probe\nG91\nG38.2 Z-90 F200\nG90\n; Set the active WCS Z0\nG10 L20 P1 Z14.95\n; Retract from the touch plate\nG91\nG0 Z4\nG90",
+            "grid": {
+                "xs": 4
+            }
+        },
+        {
+            "id": "93506869-a50b-4510-83b4-01b6ea0710f5",
+            "name": "START Spindle",
+            "command": "M3",
+            "grid": {
+                "xs": 4
+            }
+        },
+        {
+            "id": "222ce616-2742-4c30-9d93-e87f3beef6d3",
+            "name": "STOP Spindle",
+            "command": "M5",
+            "grid": {
+                "xs": 4
+            }
+        },
+        {
+            "id": "ad83fdc8-898e-4432-a9cf-b009a9fbf057",
+            "name": "CENTER",
+            "command": "G53 Z-5;\nG53 X-392 Y-280;",
+            "grid": {
+                "xs": 6
+            }
+        },
+        {
+            "id": "b6c84dbd-e982-4cde-a35f-328327953255",
+            "name": "GARAGE",
+            "command": "G53 Z-5;\nG53 X-780 Y-5;",
+            "grid": {
+                "xs": 6
+            }
+        }
+    ],
+    "events": [
+        {
+            "id": "7097183b-c145-4371-b355-4f2ddf357a9b",
+            "mtime": 1676125379914,
+            "enabled": true,
+            "event": "gcode:start",
+            "trigger": "gcode",
+            "commands": "G10 L20 P1 X0 Y0 ;\nM3 ;\n"
+        },
+        {
+            "id": "460982c3-17fd-49c7-a752-d894140ecbdf",
+            "mtime": 1676125422167,
+            "enabled": true,
+            "event": "gcode:pause",
+            "trigger": "gcode",
+            "commands": "M5 ;"
+        },
+        {
+            "id": "09360922-0977-425c-aec0-dca97d12cee7",
+            "mtime": 1676125412256,
+            "enabled": true,
+            "event": "gcode:stop",
+            "trigger": "gcode",
+            "commands": "M5 ;\nG21 ;"
+        },
+        {
+            "id": "0f030b68-4c97-490e-acaa-d29dc55a880a",
+            "mtime": 1676125416693,
+            "enabled": true,
+            "event": "gcode:resume",
+            "trigger": "gcode",
+            "commands": "M3 ;"
+        }
+    ],
+    "machines": [
+        {
+            "name": "XCarve",
+            "limits": {
+                "xmin": 0,
+                "xmax": 800,
+                "ymin": 0,
+                "ymax": 660,
+                "zmin": 0,
+                "zmax": 90
+            },
+            "id": "b6e91a68-7cfe-49cc-8548-c6e0c870b463"
+        }
+    ],
+    "commands": [
+        {
+            "id": "85e7e0c9-e783-416e-bd4a-d6b5aff02068",
+            "mtime": 1670251226409,
+            "enabled": true,
+            "title": "RESTART CNCJS",
+            "commands": "kill -INT $(pgrep node)"
+        }
+    ]
+}
