@@ -1,4 +1,5 @@
-import { io, Socket } from "socket.io-client";
+import io from "socket.io-client";
+import { writable, type Writable } from "svelte/store";
 
 export class Coordinate {
     X:number
@@ -14,8 +15,9 @@ export class MachineStatus {
 }
 
 export class SerialPort {
-    path : string
-    manufacturer : string
+    port : string
+    manufacturer:string
+    inuse = false
 }
 
 export class StartupEvent {
@@ -26,11 +28,15 @@ export class StartupEvent {
 
 export class Controller {
 
-    socket: Socket;
-    token: Promise<string>
-    ports: Promise<SerialPort[]> = new Promise(f=>f)
+    socket: io.socket;
+    token : Promise<string>;
+    ports = writable<SerialPort[]>([])
 
     constructor(){
+        this.configure()
+    }
+
+    async configure(){
         this.token = new Promise(async (resolve, reject)=>{
             try{
             let token = null;
@@ -40,24 +46,31 @@ export class Controller {
                 let result = await (await fetch("../signin", {method : "POST"})).json() as SigninResult
                 token = result.token;
             }
-            resolve(token)
+            resolve(token);
             }catch(err){
                 reject(err);
             }
         });
 
-        this.socket.on("startup",f => {
-            this.ports = this.ports.then(p=> (JSON.parse(f) as StartupEvent).ports);
+        let t = await this.token;
+
+        this.socket = new io({
+            autoConnect : false,
+            query : {
+            token: t,
+        }});
+
+        this.socket.on("serialport:list", p => {
+            this.ports.set(p)
         });
-
-        this.socket.on("serialport:list", p=> this.ports = this.ports.then(f=> JSON.parse(p) as SerialPort[]))
-
-        // get token from local storage or request
-        // a new one from the socket.io server.
+        this.socket.emit("probe");
+        this.refresh_serial_list();
+        this.socket.connect();
     }
 
-    refresh_list() {
+    refresh_serial_list() {
         this.socket.emit("list");
+        console.info("requested serial list update");
     }
 
     async commands() : Promise<CommandQueryResult> {

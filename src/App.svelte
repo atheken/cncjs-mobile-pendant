@@ -1,11 +1,21 @@
+<style>
+	inuse:true {
+		color: red;
+	}
+
+	inuse:false {
+		color: gree;
+	}
+</style>
 <script>
-	import { CommandQueryResult, CommandRecord, Controller } from './lib/Controller';
+	import { Controller } from './lib/Controller';
 
 	import StandardControls from './lib/StandardControls.svelte'
 	import JogControls from './lib/JogControls.svelte'
 	//import CoordinateDisplay from './CoordinateDisplay.svelte'
 	import JobStatus from './lib/JobStatus.svelte'
     import { onMount } from 'svelte';
+    import ConnectionPanel from './lib/ConnectionPanel.svelte';
 
 	let model = {
 		coords : {
@@ -26,14 +36,11 @@
 	let c = new Controller();
 
 	let commands = [];
-	let serialports = [];
-
 	onMount(async ()=> {
 		let records = (await c.commands()).records;
-		console.info(records);
 		commands = records;
-		serialports = await c.ports
 	});
+
 </script>
 
 
@@ -50,3 +57,7 @@ Status: { model.status || "Unknown" }
 {#each commands as c(c.id) }
 	<button id={c.id} disabled={!c.enabled }>{c.title}</button>
 {/each}
+
+<hr />
+
+<ConnectionPanel model={c}/>
