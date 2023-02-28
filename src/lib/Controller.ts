@@ -1,6 +1,7 @@
 import io from "socket.io-client";
 import { writable, get } from "svelte/store";
 import { ulid } from 'ulid';
+import type MachineDeviceInterface from "./MachineDeviceInterface";
 
 export class Coordinate {
     X:number
@@ -45,7 +46,26 @@ export class SigninResult {
     name: string
 }
 
+export class WorkflowState{
+    socket:io.socket;
+    status = writable("unknown");
+
+    constructor(socket:io.socket){
+        this.socket = socket;
+        this.socket?.on("workflow:state", f => {
+            this.status.set(f);
+        });
+    }
+}
+
 export class Controller {
+
+    public static async Initialize() : Promise<Controller> {
+        var c = new Controller();
+        await c.configure();
+        return c;
+    }
+
     close_connection(): any {
         this.socket.emit("close", get(this.active_port)?.port)
     }
@@ -54,20 +74,20 @@ export class Controller {
     }
 
     private controller_id = ulid();
+    private socket: io.socket;
+    private token:string;
 
-    socket: io.socket;
-    token : Promise<string>;
     ports = writable<SerialPort[]>([])
     active_port = writable<SerialPort>(null)
+    connected_to_server = writable<boolean>(false);
+    workflow_state: WorkflowState;
 
-    constructor(){
-        this.configure()
+    private constructor(){
+        // the object should be called with "configure()" before use. Use "Initialize" to construct one.
     }
 
-    async configure(){
-        
-        this.token = new Promise(async (resolve, reject)=>{
-            try{
+    private async configure(){
+         try{
             let token = null;
             let cnc = JSON.parse(localStorage.getItem("cnc") || "{}");
             token ||= cnc?.state?.session?.token;
@@ -75,46 +95,47 @@ export class Controller {
                 let result = await (await fetch("../signin", {method : "POST"})).json() as SigninResult
                 token = result.token;
             }
-            resolve(token);
-            }catch(err){
-                reject(err);
-            }
-        });
 
-        let t = await this.token;
+            this.token = token;
+            
+            this.socket = new io({
+                autoConnect : false,
+                query : {
+                token,
+            }});
 
-        this.socket = new io({
-            autoConnect : false,
-            query : {
-            token: t,
-        }});
-
-        this.socket.on("serialport:list", p => {
-            this.ports.set(p)
-        });
-        this.socket.emit("probe");
-        this.refresh_serial_list();
-
-
-        // dump all packets to the debug console for inspection.
-        this.socket.on("connection", function(packet, next){
-            console.debug(packet);
-            next();
-        });
-
-        this.socket.on("serialport:open", f => {
-             this.active_port.set(f);
-             this.write("$$");
-        });
-
-        this.socket.on("serialport:close", () => {
-            this.active_port.set(null);
+            this.socket.on("serialport:list", p => {
+                this.ports.set(p)
+            });
+            
+            // initialize serial list.
             this.refresh_serial_list();
-        });
 
-        this.socket.on("serialport:read", s=> {console.debug(s) })
+            ["connect_error", "connect_timeout", "error", "disconnect", "reconnect", "reconnect_attempt",
+                "reconnecting", "reconnect_error", "reconnect_failed"]
+                .forEach(f=> this.socket.on(f, ()=> this.connected_to_server.set(false) ))
 
-        this.socket.connect();
+            this.socket.on("connect", () => this.connected_to_server.set(true));
+
+            this.socket.on("serialport:open", f => {
+                this.active_port.set(f);
+                this.write("$$");
+            });
+
+            this.socket.on("serialport:close", () => {
+                this.active_port.set(null);
+                this.refresh_serial_list();
+            });
+
+            this.socket.on("serialport:read", s=> {console.debug(s) })
+
+            this.workflow_state = new WorkflowState(this.socket);
+
+            this.socket.connect();
+        
+        }catch(err){
+            throw err;
+        }
     }
 
     refresh_serial_list() {
@@ -128,7 +149,7 @@ export class Controller {
 
     async commands() : Promise<CommandQueryResult> {
         try{
-            let results = await fetch('../api/commands', { headers : {
+            let results = await fetch(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`, { headers : {
                 "Authorization" : `Bearer ${await this.token}`
             }});
             return await results.json();
@@ -138,4 +159,31 @@ export class Controller {
             throw err;
         }
     }
+
+    async mdi_commands() : Promise<MachineDeviceInterface[]> {
+        try{
+            let results = await fetch('../api/mdi', { headers : {
+                "Authorization" : `Bearer ${await this.token}`
+            }});
+            return (await results.json()).records;
+        }
+        catch(err){
+            console.error(err);
+            throw err;
+        }
+    }
+
+    async macros() : Promise<any[]> {
+        try{
+            let results = await fetch('../api/macros', { headers : {
+                "Authorization" : `Bearer ${await this.token}`
+            }});
+            return (await results.json()).records;
+        }
+        catch(err){
+            console.error(err);
+            throw err;
+        }
+    }
+
 }

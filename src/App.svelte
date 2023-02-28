@@ -1,63 +1,46 @@
-<style>
-	inuse:true {
-		color: red;
-	}
+<style></style>
 
-	inuse:false {
-		color: gree;
-	}
-</style>
-<script>
+<script lang="ts">
 	import { Controller } from './lib/Controller';
-
 	import StandardControls from './lib/StandardControls.svelte'
 	import JogControls from './lib/JogControls.svelte'
-	//import CoordinateDisplay from './CoordinateDisplay.svelte'
 	import JobStatus from './lib/JobStatus.svelte'
-    import { onMount } from 'svelte';
-    import ConnectionPanel from './lib/ConnectionPanel.svelte';
+	import { onMount } from 'svelte';
+	import ConnectionPanel from './lib/ConnectionPanel.svelte';
 
-	let model = {
-		coords : {
-			work : {
-				x : 0.2 ,y: 1.1, z: 2.2
+	let controller:Controller;
+
+	onMount(async () => {
+
+		let model = {
+			coords : {
+				work : {
+					x : 0.2 ,y: 1.1, z: 2.2
+				},
+				machine: {
+					x : 0.1, y: 2.2, z: 3.1
+				}
 			},
-			machine: {
-				x : 0.1, y: 2.2, z: 3.1
-			}
-		},
-		units: 'mm',
-		jog_step: 1,
-		status : 'busy',
-		loaded_file: 'process.nc',
-		locked: false
-	}
+			units: 'mm',
+			jog_step: 1,
+			loaded_file: 'process.nc',
+			locked: false
+		}
 
-	let c = new Controller();
-
-	let commands = [];
-	onMount(async ()=> {
-		let records = (await c.commands()).records;
-		commands = records;
+		controller = await Controller.Initialize();
 	});
 
 </script>
 
+{#if !controller}
+	Loading...
+{:else}
+	<StandardControls model={controller} />
+	<hr/>
 
-<StandardControls/>
-<hr/>
-Status: { model.status || "Unknown" }	
-<hr/>
-<JogControls />
-<hr>
-<JobStatus model={model} />
+	<JogControls />
+	<hr>
+	<JobStatus model={controller.workflow_state} />
+	<ConnectionPanel model={controller}/>
+{/if}
 
-<hr />
-
-{#each commands as c(c.id) }
-	<button id={c.id} disabled={!c.enabled }>{c.title}</button>
-{/each}
-
-<hr />
-
-<ConnectionPanel model={c}/>

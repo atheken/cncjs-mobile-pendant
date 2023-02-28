@@ -1,24 +1,11 @@
-<script>
-	export let model = {
-		status : 'unknown',
-		loaded_file : null
-	};
+<script lang=ts>
+    import type { WorkflowState } from "./Controller";
+
+	export let model:WorkflowState
+
+	let status = model.status;
+
 </script>
 <div>
-	{#if model.loaded_file }
-	<span> Loaded file: { model.loaded_file }</span>
-	{:else}
-		<span>No file loaded.</span>
-	{/if}
-<hr/>
-<button>
-	Go
-</button>
-<button>
-	Pause
-</button>
-<button>
-	Stop
-</button>
-	
+	Status: { $status }
 </div>
