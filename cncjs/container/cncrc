@@ -18,9 +18,9 @@
     "secret": "it's a testing secret",
     "macros": [],
     "mountPoints" :[
-	{ 
-        "route" : "/mobile", "target" : "/root/dist"
-    }],
+        {"route" : "/mobile", "target" : "/root/dist"},
+        {"route" : "/tinyweb", "target" : "https://cncjs.github.io/cncjs-pendant-tinyweb/src/"}
+    ],
     "mdi": [
         {
             "id": "fa91680e-6d2c-4491-8e49-e032b896992d",
