@@ -13,13 +13,14 @@ services:
   cncjs:
     build: ./cncjs/container
     volumes:
-      - ./cncjs/data:/root/data
+      - ./cncjs:/root
       - ./dist:/root/dist
     depends_on:
       - grbl-sim
     ports:
       - 8000:8000
   grbl-sim:
+    platform: linux/amd64
     image: atheken/grbl-sim
     expose:
       - 9600

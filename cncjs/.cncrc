@@ -9,8 +9,7 @@
     },
     "ports": [
         {
-            "path": "/dev/ttySIM",
-            "manufacturer": "grbl-sim"
+            "path": "/dev/ttySIM"
         }
     ],
     "controller" : [ "Grbl" ],
