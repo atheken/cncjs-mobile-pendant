@@ -29,7 +29,7 @@
                 <option class:inuse={p.inuse} class:available={!p.inuse} value={p}>{p.port}</option>
                 {/each}
             </select>
-            <button disabled={!selected} on:click={()=> model.open_connection(selected)}>Connect</button>
+            <button disabled={!selected} on:click={()=> { model.open_connection(selected); selected = null; } }>Connect</button>
             <button on:click={()=> model.refresh_serial_list() }>Refresh</button>
         {/if}
     </form>
