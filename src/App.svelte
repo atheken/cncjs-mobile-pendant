@@ -13,6 +13,7 @@
 	import JobStatus from './lib/JobStatus.svelte'
 	import { onMount } from 'svelte';
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
+    import DisconnectControl from './lib/DisconnectControl.svelte';
     
 	let controller:Controller;
 	let active_port
@@ -73,7 +74,7 @@
 	Loading...
 	{/if}
 {:else}
-	<ConnectionPanel model={controller} />
+		<ConnectionPanel model={controller} />
 		<div class={!$active_port ? 'blur-sm' : ''} >
 		{#if selected_tab_id == 'commands'}
 			<StandardControls model={controller} />
@@ -82,9 +83,7 @@
 		{:else if selected_tab_id == 'jog'}
 			<JogControls />
 		{:else if selected_tab_id == 'connection'}
-			<div>
-				<button class="btn btn-error" disabled={!$active_port} on:click={()=> controller.close_connection()}>Disconnect</button>
-			</div>
+			<DisconnectControl model={controller} />
 		{/if}
 		<div class="btm-nav btm-nav-sm">
 			{#each tabs as t(t.id)}
