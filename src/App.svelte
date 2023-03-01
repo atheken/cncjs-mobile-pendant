@@ -2,15 +2,40 @@
 </style>
 
 <script lang="ts">
+	import job from './assets/icons/job.svg';
+	import connection from './assets/icons/connection.svg';
+	import jog from './assets/icons/jog.svg';
+	import commands from './assets/icons/commands.svg';
+
 	import { Controller, SerialPort } from './lib/Controller';
 	import StandardControls from './lib/StandardControls.svelte'
 	import JogControls from './lib/JogControls.svelte'
 	import JobStatus from './lib/JobStatus.svelte'
 	import { onMount } from 'svelte';
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
-
+    
 	let controller:Controller;
 	let active_port
+	let tabs = [
+		{
+		id: "commands",
+		alt: "Machine Device Interface",
+		icon: commands
+	},
+	{
+		id: "job",
+		alt: "Job Control",
+		icon: job
+	}, {
+		id: "connection",
+		icon: connection
+	},
+	{
+		id: "jog",
+		icon: jog
+	}]
+	let selected_tab_id = "commands"
+	let error;
 
 	onMount(async () => {
 
@@ -29,35 +54,42 @@
 			locked: false
 		}
 
-		controller = await Controller.Initialize();
-		active_port = controller.active_port;
+
+		try{
+			controller = await Controller.Initialize();
+			active_port = controller.active_port;
+		}
+		catch(err){
+			error = err
+		}
 	});
 
 </script>
 <div class="container mx-auto">
 {#if !controller}
+	{#if error}
+	The following error: {error}
+	{:else}
 	Loading...
-{:else if !$active_port }
-	<ConnectionPanel model={controller}/>
+	{/if}
 {:else}
-	<StandardControls model={controller} />
-	<hr/>
-
-	<JogControls />
-	<hr>
-	<JobStatus model={controller.workflow_state} />
-	
-	<div class="btm-nav btm-nav-xs">
-		<button>
-		  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-		</button>
-		<button class="active">
-		  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-		</button>
-		<button>
-		  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-		</button>
-	  </div>
-	  <ConnectionPanel model={controller}/>
+<ConnectionPanel model={controller} />
+	{#if selected_tab_id == 'commands'}
+		<StandardControls model={controller} />
+	{:else if selected_tab_id == 'job'}
+		<JobStatus model={controller.workflow_state} />
+	{:else if selected_tab_id == 'jog'}
+		<JogControls />
+	{:else if selected_tab_id == 'connection'}
+		<div>
+			<button class="btn btn-error" disabled={!$active_port} on:click={()=> controller.close_connection()}>Disconnect</button>
+		</div>
+	{/if}
+	<div class="btm-nav btm-nav-sm">
+		{#each tabs as t(t.id)}
+			<button on:click={()=> selected_tab_id = t.id } class:active={t.id == selected_tab_id} data-tab-selection={t.id}>
+				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><image width="24" height="24" xlink:href="{t.icon}"></image></svg></button>
+		{/each}
+	</div>
 {/if}
 </div>
