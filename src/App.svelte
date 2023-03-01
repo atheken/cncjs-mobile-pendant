@@ -73,23 +73,25 @@
 	Loading...
 	{/if}
 {:else}
-<ConnectionPanel model={controller} />
-	{#if selected_tab_id == 'commands'}
-		<StandardControls model={controller} />
-	{:else if selected_tab_id == 'job'}
-		<JobStatus model={controller.workflow_state} />
-	{:else if selected_tab_id == 'jog'}
-		<JogControls />
-	{:else if selected_tab_id == 'connection'}
-		<div>
-			<button class="btn btn-error" disabled={!$active_port} on:click={()=> controller.close_connection()}>Disconnect</button>
+	<ConnectionPanel model={controller} />
+		<div class={!$active_port ? 'blur-sm' : ''} >
+		{#if selected_tab_id == 'commands'}
+			<StandardControls model={controller} />
+		{:else if selected_tab_id == 'job'}
+			<JobStatus model={controller.workflow_state} />
+		{:else if selected_tab_id == 'jog'}
+			<JogControls />
+		{:else if selected_tab_id == 'connection'}
+			<div>
+				<button class="btn btn-error" disabled={!$active_port} on:click={()=> controller.close_connection()}>Disconnect</button>
+			</div>
+		{/if}
+		<div class="btm-nav btm-nav-sm">
+			{#each tabs as t(t.id)}
+				<button on:click={()=> selected_tab_id = t.id } class:active={t.id == selected_tab_id} data-tab-selection={t.id}>
+					<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><image width="24" height="24" xlink:href="{t.icon}"></image></svg></button>
+			{/each}
 		</div>
-	{/if}
-	<div class="btm-nav btm-nav-sm">
-		{#each tabs as t(t.id)}
-			<button on:click={()=> selected_tab_id = t.id } class:active={t.id == selected_tab_id} data-tab-selection={t.id}>
-				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><image width="24" height="24" xlink:href="{t.icon}"></image></svg></button>
-		{/each}
 	</div>
 {/if}
 </div>
