@@ -4,21 +4,22 @@ export class StateConnectionSettings {
 }
 
 export default class PendantState{
-    private static  instance: PendantState
-    private static readonly statekey = "mobilependantstate";
-    static load() : PendantState {
-        
-        if(!PendantState.instance){
-            PendantState.instance = new PendantState();
+    private static _instance: PendantState;
+
+    static get instance(): PendantState {
+        if(!PendantState._instance){
+            PendantState._instance = new PendantState();
             var storedState = localStorage.getItem(PendantState.statekey);
             if(storedState){
-                PendantState.instance = Object.assign(PendantState.instance, JSON.parse(storedState));
+                PendantState._instance = Object.assign(PendantState._instance, JSON.parse(storedState));
             }
         }
         
-        return PendantState.instance
+        return PendantState._instance
     }
 
+    private static readonly statekey = "mobilependantstate";
+   
     private constructor(){}
 
     connection= new StateConnectionSettings()

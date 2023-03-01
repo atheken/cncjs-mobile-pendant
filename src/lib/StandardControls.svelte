@@ -15,24 +15,27 @@
 
 </script>
 <div>
-<button>
+<button class="btn btn-success" on:click={()=> model.home() }>
 	Home
 </button>
-<button>
-	E-STOP
+<button class="btn bg-red-500 border-red-600 text-rose-200" on:click={ ()=> model.feedhold() }>
+	Feedhold
 </button>
-<button>
-	Lock
+<button class=btn on:click={ ()=> model.unlock() }>
+	Unlock
 </button>
-<button>
+<button class=btn on:click={() => model.cycle_start() } >
+	Continue
+</button>
+<button class=btn on:click={() => model.reset() } >
 	Reset
 </button>
 <hr/>
 {#each commands as c(c.id)}
-	<button value="{c.id}" disabled="{!c.enabled}">{c.title}</button>
+	<button class=btn value="{c.id}" disabled="{!c.enabled}" on:click={()=> model.execute_command(c) }> {c.title}</button>
 {/each}
 <hr/>
 {#each mdi as m(m.id)}
-	<button value="{m.id}">{m.name}</button>
+	<button class=btn value="{m.id}" on:click={()=> model.execute_mdi(m) } >{m.name}</button>
 {/each}
 </div>

@@ -17,10 +17,17 @@ services:
       - ./dist:/root/dist
     depends_on:
       - grbl-sim
+    restart: always
     ports:
       - 8000:8000
   grbl-sim:
     platform: linux/amd64
+    environment:
+      GRBL_COMMENT: ''
+      GRBL_REALTIME_FACTOR: 1.0
+      GRBL_TIME_STEP: 1.0
+      GRBL_ARGS: '-n'
     image: atheken/grbl-sim
+    restart: always
     expose:
       - 9600

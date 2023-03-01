@@ -115,8 +115,8 @@
             "id": "85e7e0c9-e783-416e-bd4a-d6b5aff02068",
             "mtime": 1670251226409,
             "enabled": true,
-            "title": "RESTART CNCJS",
-            "commands": "kill -INT $(pgrep node)"
+            "title": "ECHO COMMAND TEST",
+            "commands": "echo 'asdf'"
         }
     ]
 }

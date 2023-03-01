@@ -9,5 +9,9 @@ export default defineConfig({
   plugins: [svelte()],
   server : {
     host : true
+  },
+  build: {
+    sourcemap : true,
+    minify : false
   }
 });

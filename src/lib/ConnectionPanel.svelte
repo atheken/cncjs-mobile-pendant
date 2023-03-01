@@ -10,7 +10,7 @@
 
     let selected:SerialPort = null;
 
-    let state = PendantState.load();
+    let state = PendantState.instance;
     
     ports.subscribe(p => {
         let port = state.connection?.port;
@@ -29,8 +29,7 @@
         selected = null;
     }
 </script>
-{#if !$active_port?.port }
-<div class="modal-open modal">
+<div class="modal" class:modal-open={!$active_port?.port}>
 <div class="modal-box">
     <h4>Please select a serial port on which to connect:</h4>
     <select class="select select-primary" bind:value={selected}>
@@ -47,4 +46,3 @@
 </div>
 </div>
 </div>
-{/if}

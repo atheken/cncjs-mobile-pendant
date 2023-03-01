@@ -9,7 +9,7 @@
     let {active_port} = model;
 
     function disconnect() {
-        let state = PendantState.load();
+        let state = PendantState.instance;
         state.connection.autoconnect = false;
         state.save();
         model.close_connection();

@@ -1,6 +1,7 @@
 import io from "socket.io-client";
 import { writable, get } from "svelte/store";
 import { ulid } from 'ulid';
+import DirectoryListing from "./DirectoryListing";
 import type MachineDeviceInterface from "./MachineDeviceInterface";
 
 export class Coordinate {
@@ -28,7 +29,7 @@ export class StartupEvent {
     ports: SerialPort[]
 }
 
-export class CommandRecord{
+export interface CommandRecord{
     id: string
     mtime: number
     enabled: boolean
@@ -59,7 +60,8 @@ export class WorkflowState{
 }
 
 export class Controller {
-
+    request_init: RequestInit;
+    
     public static async Initialize() : Promise<Controller> {
         var c = new Controller();
         await c.configure();
@@ -98,6 +100,10 @@ export class Controller {
 
             this.token = token;
             
+            this.request_init =  { headers : {
+                "Authorization" : `Bearer ${this.token}`
+            }};
+
             this.socket = new io({
                 autoConnect : false,
                 query : {
@@ -113,21 +119,25 @@ export class Controller {
 
             ["connect_error", "connect_timeout", "error", "disconnect", "reconnect", "reconnect_attempt",
                 "reconnecting", "reconnect_error", "reconnect_failed"]
-                .forEach(f=> this.socket.on(f, ()=> this.connected_to_server.set(false) ))
+                .forEach(f=> this.socket.on(f, ()=> this.connected_to_server.set(false) ));
+
+            // listen for generic events so that this will handle them.
+            ["startup","config:change","task:start","task:finish","task:error","serialport:list","serialport:change",
+                "serialport:open","serialport:close","serialport:error","serialport:read","serialport:write",
+                "gcode:load","gcode:unload","feeder:status","sender:status","workflow:state",
+                "controller:settings","controller:state","message"
+            ].forEach(r => this.socket.on(r, p => console.debug({"name" : r, "payload" : p})));
 
             this.socket.on("connect", () => this.connected_to_server.set(true));
 
             this.socket.on("serialport:open", f => {
                 this.active_port.set(f);
-                this.write("$$");
             });
 
             this.socket.on("serialport:close", () => {
                 this.active_port.set(null);
                 this.refresh_serial_list();
             });
-
-            this.socket.on("serialport:read", s=> {console.debug(s) })
 
             this.workflow_state = new WorkflowState(this.socket);
 
@@ -149,9 +159,7 @@ export class Controller {
 
     async commands() : Promise<CommandQueryResult> {
         try{
-            let results = await fetch(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`, { headers : {
-                "Authorization" : `Bearer ${await this.token}`
-            }});
+            let results = await fetch(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`, this.request_init);
             return await results.json();
         }
         catch(err){
@@ -172,6 +180,46 @@ export class Controller {
             throw err;
         }
     }
+
+    home() {
+        this.socket.emit("command", this.port_path, "homing")
+    }
+
+    feedhold() {
+        this.socket.emit("feedhold", this.port_path, "feedhold")
+    }
+    
+    unlock() {
+        this.socket.emit("command", this.port_path, "unlock")
+    }
+
+    reset() {
+        this.socket.emit("command", this.port_path, "reset")
+    }
+
+    sleep(){
+        this.socket.emit("command", this.port_path, "sleep")
+    }
+
+    cycle_start(){
+        this.socket.emit("command", this.port_path, "cyclestart")
+    }
+
+    async execute_command(record:CommandRecord){
+        await fetch(`/api/commands/run/${record.id}`, Object.assign(this.request_init, {method : "POST"}));
+    }
+
+    execute_mdi(record:MachineDeviceInterface){
+        this.socket.emit("command", this.port_path, "gcode", record.command)
+    }
+
+    async list_files(path:string = "") {
+        var result = await (await fetch("/api/watch/files", Object.assign({path}, this.request_init))).json();
+        var retval = Object.assign(new DirectoryListing(), result);
+        return retval;
+    }
+
+    private get port_path(): string {return get(this.active_port)?.port }
 
     async macros() : Promise<any[]> {
         try{
