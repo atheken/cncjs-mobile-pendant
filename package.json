@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build -w",
+    "watch": "vite build -w",
+    "build": "vite build",
     "preview": "vite preview",
+    "format": "prettier --config .prettierrc 'src/**/*.ts' --write",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
@@ -16,6 +18,9 @@
     "autoprefixer": "^10.4.13",
     "daisyui": "^2.51.2",
     "postcss": "^8.4.21",
+    "prettier": "^2.8.4",
+    "prettier-plugin-svelte": "^2.9.0",
+    "prettier-plugin-tailwindcss": "^0.2.4",
     "socket.io-client": "^2.2.0",
     "svelte": "^3.55.1",
     "svelte-check": "^2.10.3",

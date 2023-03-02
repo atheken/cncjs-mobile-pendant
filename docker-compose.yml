@@ -9,7 +9,7 @@ services:
       - 4173
     volumes:
       - .:/data
-    entrypoint: "/start npm run build"
+    entrypoint: "/start npm run watch"
   cncjs:
     build: ./cncjs/container
     volumes:

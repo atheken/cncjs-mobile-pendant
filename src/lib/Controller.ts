@@ -69,16 +69,11 @@ export class Controller {
         return c;
     }
 
-    close_connection(): any {
-        this.socket.emit("close", get(this.active_port)?.port)
-    }
-    open_connection(selected: SerialPort) {
-        this.socket.emit("open", selected.port, { controllerType : "Grbl", "baudrate" : 115200 })    
-    }
-
     private controller_id = ulid();
     private socket: io.socket;
     private token:string;
+    private _macros = writable<any[]>();
+
 
     ports = writable<SerialPort[]>([])
     active_port = writable<SerialPort>(null)
@@ -89,68 +84,12 @@ export class Controller {
         // the object should be called with "configure()" before use. Use "Initialize" to construct one.
     }
 
-    private async configure(){
-         try{
-            let token = null;
-            let cnc = JSON.parse(localStorage.getItem("cnc") || "{}");
-            token ||= cnc?.state?.session?.token;
-            if(!token){
-                let result = await (await fetch("../signin", {method : "POST"})).json() as SigninResult
-                token = result.token;
-            }
 
-            this.token = token;
-            
-            this.socket = new io({
-                autoConnect : false,
-                query : {
-                token,
-            }});
-
-            this.socket.on("serialport:list", p => {
-                this.ports.set(p)
-            });
-            
-            // initialize serial list.
-            this.refresh_serial_list();
-
-            this.socket.on("config:change", async ()=>{
-                this._commands.set(await this.request_json(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`));
-                this._mdi_commands.set((await this.request_json('../api/mdi')).records);
-            });
-            
-            this._commands.set(await this.request_json(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`));
-            this._mdi_commands.set((await this.request_json('../api/mdi')).records);
-
-            ["connect_error", "connect_timeout", "error", "disconnect", "reconnect", "reconnect_attempt",
-                "reconnecting", "reconnect_error", "reconnect_failed"]
-                .forEach(f=> this.socket.on(f, ()=> this.connected_to_server.set(false) ));
-
-            // listen for generic events so that this will handle them.
-            ["startup","config:change","task:start","task:finish","task:error","serialport:list","serialport:change",
-                "serialport:open","serialport:close","serialport:error","serialport:read","serialport:write",
-                "gcode:load","gcode:unload","feeder:status","sender:status","workflow:state",
-                "controller:settings","controller:state","message"
-            ].forEach(r => this.socket.on(r, p => console.debug({"name" : r, "payload" : p})));
-
-            this.socket.on("connect", () => this.connected_to_server.set(true));
-
-            this.socket.on("serialport:open", f => {
-                this.active_port.set(f);
-            });
-
-            this.socket.on("serialport:close", () => {
-                this.active_port.set(null);
-                this.refresh_serial_list();
-            });
-
-            this.workflow_state = new WorkflowState(this.socket);
-
-            this.socket.connect();
-        
-        }catch(err){
-            throw err;
-        }
+    close_connection(): any {
+        this.socket.emit("close", get(this.active_port)?.port)
+    }
+    open_connection(selected: SerialPort) {
+        this.socket.emit("open", selected.port, { controllerType : "Grbl", "baudrate" : 115200 })    
     }
 
     refresh_serial_list() {
@@ -165,6 +104,9 @@ export class Controller {
     get commands(): Readable<CommandQueryResult>  { return this._commands; }
     
     get mdi_commands() : Readable<MachineDeviceInterface[]> { return this._mdi_commands; }
+
+
+    get macros() : Readable<any[]> { return this._macros };
 
     home() {
         this.socket.emit("command", this.port_path, "homing")
@@ -204,19 +146,79 @@ export class Controller {
         return retval;
     }
 
-    private get port_path(): string {return get(this.active_port)?.port }
 
-    async macros() : Promise<any[]> {
+
+    private async configure(){
         try{
-            return (await this.request_json('../api/macros')).records;
-        }
-        catch(err){
-            console.error(err);
-            throw err;
-        }
-    }
+           let token = null;
+           let cnc = JSON.parse(localStorage.getItem("cnc") || "{}");
+           token ||= cnc?.state?.session?.token;
+           if(!token){
+               let result = await (await fetch("../signin", {method : "POST"})).json() as SigninResult
+               token = result.token;
+           }
 
-    async request_json(url:string|RequestInfo, method:"GET"|"POST" = "GET", options:RequestInit = {}) : Promise<any> {
+           this.token = token;
+           
+           this.socket = new io({
+               autoConnect : false,
+               query : {
+               token,
+           }});
+
+           this.socket.on("serialport:list", p => {
+               this.ports.set(p)
+           });
+           
+           // initialize serial list.
+           this.refresh_serial_list();
+
+           this.socket.on("config:change", async ()=>{
+              await this.load_config();
+           });
+           
+           await this.load_config();
+
+           ["connect_error", "connect_timeout", "error", "disconnect", "reconnect", "reconnect_attempt",
+               "reconnecting", "reconnect_error", "reconnect_failed"]
+               .forEach(f=> this.socket.on(f, ()=> this.connected_to_server.set(false) ));
+
+           // listen for generic events so that this will handle them.
+           ["startup", "task:start","task:finish","task:error","serialport:list","serialport:change",
+               "serialport:error","serialport:read","serialport:write",
+               "gcode:load","gcode:unload","feeder:status","sender:status","workflow:state",
+               "controller:settings","controller:state","message"
+           ].forEach(r => this.socket.on(r, p => console.debug({"name" : r, "payload" : p})));
+
+           this.socket.on("connect", () => this.connected_to_server.set(true));
+
+           this.socket.on("serialport:open", f => {
+               this.active_port.set(f);
+           });
+
+           this.socket.on("serialport:close", () => {
+               this.active_port.set(null);
+               this.refresh_serial_list();
+           });
+
+           this.workflow_state = new WorkflowState(this.socket);
+
+           this.socket.connect();
+       
+       }catch(err){
+           throw err;
+       }
+   }
+
+   private get port_path(): string {return get(this.active_port)?.port }
+
+   private async load_config(){
+       this._commands.set(await this.request_json(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`));
+       this._mdi_commands.set((await this.request_json('../api/mdi')).records);
+       this._macros.set((await this.request_json('../api/macros')).records);
+   }
+
+    private async request_json(url:string|RequestInfo, method:"GET"|"POST" = "GET", options:RequestInit = {}) : Promise<any> {
         
         let h = new Headers();
         h.set("Authorization", `Bearer ${this.token}`);
