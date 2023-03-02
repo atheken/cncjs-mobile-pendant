@@ -5,261 +5,295 @@ import DirectoryListing from './DirectoryListing';
 import type MachineDeviceInterface from './MachineDeviceInterface';
 
 export class Coordinate {
-  X: number;
-  Y: number;
-  Z: number;
+	X: number;
+	Y: number;
+	Z: number;
 }
 
 export class MachineStatus {
-  work_coordinate: Coordinate;
-  machine_coordinate: Coordinate;
-  loaded_file: string | null;
-  grbl_status: string | null;
+	work_coordinate: Coordinate;
+	machine_coordinate: Coordinate;
+	loaded_file: string | null;
+	grbl_status: string | null;
 }
 
 export class SerialPort {
-  port: string;
-  manufacturer: string;
-  inuse = false;
+	port: string;
+	manufacturer: string;
+	inuse = false;
 }
 
 export class StartupEvent {
-  loadedcontrollers: string[];
-  baudrates: number[];
-  ports: SerialPort[];
+	loadedcontrollers: string[];
+	baudrates: number[];
+	ports: SerialPort[];
 }
 
 export interface CommandRecord {
-  id: string;
-  mtime: number;
-  enabled: boolean;
-  title: string;
-  commands: string;
+	id: string;
+	mtime: number;
+	enabled: boolean;
+	title: string;
+	commands: string;
 }
 
 export class CommandQueryResult {
-  records: CommandRecord[] = [];
+	records: CommandRecord[] = [];
 }
 
 export class SigninResult {
-  enabled: boolean;
-  token: string;
-  name: string;
+	enabled: boolean;
+	token: string;
+	name: string;
 }
 
 export class WorkflowState {
-  socket: io.socket;
-  status = writable('unknown');
+	socket: io.socket;
+	status = writable('unknown');
 
-  constructor(socket: io.socket) {
-    this.socket = socket;
-    this.socket?.on('workflow:state', (f) => {
-      this.status.set(f);
-    });
-  }
+	constructor(socket: io.socket) {
+		this.socket = socket;
+		this.socket?.on('workflow:state', (f) => {
+			this.status.set(f);
+		});
+	}
 }
 
 export class Controller {
-  public static async Initialize(): Promise<Controller> {
-    var c = new Controller();
-    await c.configure();
-    return c;
-  }
+	start_or_resume_gcode() {
+		if (get(this.workflow_state.status) == 'paused') {
+			this.socket.emit('command', this.port_path, 'gcode:resume');
+		} else {
+			this.socket.emit('command', this.port_path, 'gcode:start');
+		}
+	}
 
-  private controller_id = ulid();
-  private socket: io.socket;
-  private token: string;
-  private _macros = writable<any[]>();
+	pause_gcode() {
+		this.socket.emit('command', this.port_path, 'gcode:pause');
+	}
 
-  ports = writable<SerialPort[]>([]);
-  active_port = writable<SerialPort>(null);
-  connected_to_server = writable<boolean>(false);
-  workflow_state: WorkflowState;
+	unload_gcode() {
+		this.socket.emit('command', this.port_path, 'gcode:unload');
+	}
 
-  private constructor() {
-    // the object should be called with "configure()" before use. Use "Initialize" to construct one.
-  }
+	stop_gcode() {
+		this.socket.emit('command', this.port_path, 'gcode:stop', { force: true });
+	}
 
-  close_connection(): any {
-    this.socket.emit('close', get(this.active_port)?.port);
-  }
-  open_connection(selected: SerialPort) {
-    this.socket.emit('open', selected.port, {
-      controllerType: 'Grbl',
-      baudrate: 115200
-    });
-  }
+	load_gcode(file: string, contents: string = null) {
+		if (contents != null) {
+			this.socket.emit('command', this.port_path, 'gcode:load', file, contents);
+		} else {
+			this.socket.emit('command', this.port_path, 'watchdir:load', file);
+		}
+	}
+	public static async Initialize(): Promise<Controller> {
+		var c = new Controller();
+		await c.configure();
+		return c;
+	}
 
-  refresh_serial_list() {
-    this.socket.emit('list');
-  }
+	private controller_id = ulid();
+	private socket: io.socket;
+	private token: string;
+	private _macros = writable<any[]>();
+	private _loaded_gcode = writable<string>();
 
-  write(command: string, appendNewline: boolean = false) {
-    let write = appendNewline ? 'writeln' : 'write';
-    this.socket.emit(write, get(this.active_port).port, command, {
-      _sender_: this.controller_id
-    });
-  }
+	get loaded_gcode(): Readable<string> {
+		return this._loaded_gcode;
+	}
 
-  get commands(): Readable<CommandQueryResult> {
-    return this._commands;
-  }
+	ports = writable<SerialPort[]>([]);
+	active_port = writable<SerialPort>(null);
+	connected_to_server = writable<boolean>(false);
+	workflow_state: WorkflowState;
 
-  get mdi_commands(): Readable<MachineDeviceInterface[]> {
-    return this._mdi_commands;
-  }
+	private constructor() {
+		// the object should be called with "configure()" before use. Use "Initialize" to construct one.
+	}
 
-  get macros(): Readable<any[]> {
-    return this._macros;
-  }
+	close_connection(): any {
+		this.socket.emit('close', get(this.active_port)?.port);
+	}
+	open_connection(selected: SerialPort) {
+		this.socket.emit('open', selected.port, {
+			controllerType: 'Grbl',
+			baudrate: 115200
+		});
+	}
 
-  home() {
-    this.socket.emit('command', this.port_path, 'homing');
-  }
+	refresh_serial_list() {
+		this.socket.emit('list');
+	}
 
-  feedhold() {
-    this.socket.emit('feedhold', this.port_path, 'feedhold');
-  }
+	write(command: string, appendNewline: boolean = false) {
+		let write = appendNewline ? 'writeln' : 'write';
+		this.socket.emit(write, get(this.active_port).port, command, {
+			_sender_: this.controller_id
+		});
+	}
 
-  unlock() {
-    this.socket.emit('command', this.port_path, 'unlock');
-  }
+	get commands(): Readable<CommandQueryResult> {
+		return this._commands;
+	}
 
-  reset() {
-    this.socket.emit('command', this.port_path, 'reset');
-  }
+	get mdi_commands(): Readable<MachineDeviceInterface[]> {
+		return this._mdi_commands;
+	}
 
-  sleep() {
-    this.socket.emit('command', this.port_path, 'sleep');
-  }
+	get macros(): Readable<any[]> {
+		return this._macros;
+	}
 
-  cycle_start() {
-    this.socket.emit('command', this.port_path, 'cyclestart');
-  }
+	home() {
+		this.socket.emit('command', this.port_path, 'homing');
+	}
 
-  async execute_command(record: CommandRecord) {
-    await this.request_json(`/api/commands/run/${record.id}`, 'POST');
-  }
+	feedhold() {
+		this.socket.emit('feedhold', this.port_path, 'feedhold');
+	}
 
-  execute_mdi(record: MachineDeviceInterface) {
-    this.socket.emit('command', this.port_path, 'gcode', record.command);
-  }
+	unlock() {
+		this.socket.emit('command', this.port_path, 'unlock');
+	}
 
-  async list_files(path: string = ''): Promise<DirectoryListing> {
-    var result = await this.request_json('/api/watch/files', 'POST', {
-      body: JSON.stringify({ path })
-    });
-    var retval = Object.assign(new DirectoryListing(), result);
-    return retval;
-  }
+	reset() {
+		this.socket.emit('command', this.port_path, 'reset');
+	}
 
-  private async configure() {
-    try {
-      let token = null;
-      let cnc = JSON.parse(localStorage.getItem('cnc') || '{}');
-      token ||= cnc?.state?.session?.token;
-      if (!token) {
-        let result = (await (await fetch('../signin', { method: 'POST' })).json()) as SigninResult;
-        token = result.token;
-      }
+	sleep() {
+		this.socket.emit('command', this.port_path, 'sleep');
+	}
 
-      this.token = token;
+	cycle_start() {
+		this.socket.emit('command', this.port_path, 'cyclestart');
+	}
 
-      this.socket = new io({
-        autoConnect: false,
-        query: {
-          token
-        }
-      });
+	async execute_command(record: CommandRecord) {
+		await this.request_json(`/api/commands/run/${record.id}`, 'POST');
+	}
 
-      this.socket.on('serialport:list', (p) => {
-        this.ports.set(p);
-      });
+	execute_mdi(record: MachineDeviceInterface) {
+		this.socket.emit('command', this.port_path, 'gcode', record.command);
+	}
 
-      // initialize serial list.
-      this.refresh_serial_list();
+	async list_files(path: string = ''): Promise<DirectoryListing> {
+		var result = await this.request_json('/api/watch/files', 'POST', {
+			body: JSON.stringify({ path })
+		});
+		var retval = Object.assign(new DirectoryListing(), result);
+		return retval;
+	}
 
-      this.socket.on('config:change', async () => {
-        await this.load_config();
-      });
+	private async configure() {
+		try {
+			let token = null;
+			let cnc = JSON.parse(localStorage.getItem('cnc') || '{}');
+			token ||= cnc?.state?.session?.token;
+			if (!token) {
+				let result = (await (await fetch('../signin', { method: 'POST' })).json()) as SigninResult;
+				token = result.token;
+			}
 
-      await this.load_config();
+			this.token = token;
 
-      [
-        'connect_error',
-        'connect_timeout',
-        'error',
-        'disconnect',
-        'reconnect',
-        'reconnect_attempt',
-        'reconnecting',
-        'reconnect_error',
-        'reconnect_failed'
-      ].forEach((f) => this.socket.on(f, () => this.connected_to_server.set(false)));
+			this.socket = new io({
+				autoConnect: false,
+				query: {
+					token
+				}
+			});
 
-      // listen for generic events so that this will handle them.
-      [
-        'startup',
-        'task:start',
-        'task:finish',
-        'task:error',
-        'serialport:list',
-        'serialport:change',
-        'serialport:error',
-        'serialport:read',
-        'serialport:write',
-        'gcode:load',
-        'gcode:unload',
-        'feeder:status',
-        'sender:status',
-        'workflow:state',
-        'controller:settings',
-        'controller:state',
-        'message'
-      ].forEach((r) => this.socket.on(r, (p) => console.debug({ name: r, payload: p })));
+			this.socket.on('serialport:list', (p) => {
+				this.ports.set(p);
+			});
 
-      this.socket.on('connect', () => this.connected_to_server.set(true));
+			// initialize serial list.
+			this.refresh_serial_list();
 
-      this.socket.on('serialport:open', (f) => {
-        this.active_port.set(f);
-      });
+			this.socket.on('config:change', async () => {
+				await this.load_config();
+			});
 
-      this.socket.on('serialport:close', () => {
-        this.active_port.set(null);
-        this.refresh_serial_list();
-      });
+			await this.load_config();
 
-      this.workflow_state = new WorkflowState(this.socket);
+			[
+				'connect_error',
+				'connect_timeout',
+				'error',
+				'disconnect',
+				'reconnect',
+				'reconnect_attempt',
+				'reconnecting',
+				'reconnect_error',
+				'reconnect_failed'
+			].forEach((f) => this.socket.on(f, () => this.connected_to_server.set(false)));
 
-      this.socket.connect();
-    } catch (err) {
-      throw err;
-    }
-  }
+			// listen for generic events so that this will handle them.
+			[
+				'startup',
+				'task:start',
+				'task:finish',
+				'task:error',
+				'serialport:list',
+				'serialport:change',
+				'serialport:error',
+				'serialport:read',
+				'serialport:write',
+				'gcode:unload',
+				'feeder:status',
+				'sender:status',
+				'workflow:state',
+				'controller:settings',
+				'controller:state',
+				'message'
+			].forEach((r) => this.socket.on(r, (p) => console.debug({ name: r, payload: p })));
 
-  private get port_path(): string {
-    return get(this.active_port)?.port;
-  }
+			this.socket.on('gcode:load', (name, content) => this._loaded_gcode.set(name));
+			this.socket.on('gcode:unload', () => this._loaded_gcode.set(null));
 
-  private async load_config() {
-    this._commands.set(await this.request_json(`../api/commands?${new URLSearchParams({ pagination: 'false' })}`));
-    this._mdi_commands.set((await this.request_json('../api/mdi')).records);
-    this._macros.set((await this.request_json('../api/macros')).records);
-  }
+			this.socket.on('connect', () => this.connected_to_server.set(true));
 
-  private async request_json(
-    url: string | RequestInfo,
-    method: 'GET' | 'POST' = 'GET',
-    options: RequestInit = {}
-  ): Promise<any> {
-    let h = new Headers();
-    h.set('Authorization', `Bearer ${this.token}`);
-    h.set('Content-Type', 'application/json');
-    options.headers = h;
-    options.method = method;
+			this.socket.on('serialport:open', (f) => {
+				this.active_port.set(f);
+			});
 
-    return await (await fetch(url, options)).json();
-  }
-  private _commands = writable<CommandQueryResult>();
-  private _mdi_commands = writable<MachineDeviceInterface[]>();
+			this.socket.on('serialport:close', () => {
+				this.active_port.set(null);
+				this.refresh_serial_list();
+			});
+
+			this.workflow_state = new WorkflowState(this.socket);
+
+			this.socket.connect();
+		} catch (err) {
+			throw err;
+		}
+	}
+
+	private get port_path(): string {
+		return get(this.active_port)?.port;
+	}
+
+	private async load_config() {
+		this._commands.set(await this.request_json(`../api/commands?${new URLSearchParams({ pagination: 'false' })}`));
+		this._mdi_commands.set((await this.request_json('../api/mdi')).records);
+		this._macros.set((await this.request_json('../api/macros')).records);
+	}
+
+	private async request_json(
+		url: string | RequestInfo,
+		method: 'GET' | 'POST' = 'GET',
+		options: RequestInit = {}
+	): Promise<any> {
+		let h = new Headers();
+		h.set('Authorization', `Bearer ${this.token}`);
+		h.set('Content-Type', 'application/json');
+		options.headers = h;
+		options.method = method;
+
+		return await (await fetch(url, options)).json();
+	}
+	private _commands = writable<CommandQueryResult>();
+	private _mdi_commands = writable<MachineDeviceInterface[]>();
 }

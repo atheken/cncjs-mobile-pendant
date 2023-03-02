@@ -4,5 +4,8 @@
   "semi": true,
   "trailingComma": "none",
   "singleQuote": true,
-  "printWidth": 120
+  "printWidth": 120,
+  "bracketSameLine": true,
+  "svelteBracketNewLine": false,
+  "useTabs": true
 }
