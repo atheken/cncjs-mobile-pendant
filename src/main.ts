@@ -1,3 +1,4 @@
+import './assets/microns/fonts/microns.css';
 import './app.css';
 import App from './App.svelte';
 

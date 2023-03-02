@@ -1,9 +1,4 @@
 <script lang="ts">
-  import job from './assets/icons/job.svg';
-  import connection from './assets/icons/connection.svg';
-  import jog from './assets/icons/jog.svg';
-  import commands from './assets/icons/commands.svg';
-
   import { Controller, SerialPort } from './lib/Controller';
   import StandardControls from './lib/StandardControls.svelte';
   import JogControls from './lib/JogControls.svelte';
@@ -11,6 +6,7 @@
   import { onMount } from 'svelte';
   import ConnectionPanel from './lib/ConnectionPanel.svelte';
   import DisconnectControl from './lib/DisconnectControl.svelte';
+  import Icon from './lib/Icon.svelte';
 
   let controller: Controller;
   let active_port;
@@ -18,22 +14,22 @@
     {
       id: 'commands',
       alt: 'Session Commands',
-      icon: commands
+      icon: 'server'
     },
     {
       id: 'job',
       alt: 'Job Control',
-      icon: job
+      icon: 'play'
     },
     {
       id: 'connection',
       alt: 'Connection Status',
-      icon: connection
+      icon: 'swap'
     },
     {
       id: 'jog',
       alt: 'Jog Machine',
-      icon: jog
+      icon: 'move-alt'
     }
   ];
   let selected_tab_id = 'commands';
@@ -75,10 +71,8 @@
             on:click={() => (selected_tab_id = t.id)}
             class:active={t.id == selected_tab_id}
             class:text-accent={t.id == selected_tab_id}
-            data-tab-selection={t.id}
-            ><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-              ><image width="24" height="24" xlink:href={t.icon} /></svg
-            >
+            data-tab-selection="t.id"
+            ><Icon icon={t.icon} />
           </button>
         {/each}
       </div>
