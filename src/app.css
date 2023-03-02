@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 .btn {
-    text-transform: none;
-    border-radius: 3px;
+  text-transform: none;
+  border-radius: 3px;
 }
 .btn-group {
-    border-radius: 3px;
+  border-radius: 3px;
 }

@@ -1,5 +1,5 @@
 export default interface MachineDeviceInterface {
-    id: string
-    name: string
-    command: string
+  id: string;
+  name: string;
+  command: string;
 }

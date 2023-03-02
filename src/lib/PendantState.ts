@@ -1,30 +1,30 @@
 export class StateConnectionSettings {
-    port:string
-    autoconnect: boolean = false
+  port: string;
+  autoconnect: boolean = false;
 }
 
-export default class PendantState{
-    private static _instance: PendantState;
+export default class PendantState {
+  private static _instance: PendantState;
 
-    static get instance(): PendantState {
-        if(!PendantState._instance){
-            PendantState._instance = new PendantState();
-            var storedState = localStorage.getItem(PendantState.statekey);
-            if(storedState){
-                PendantState._instance = Object.assign(PendantState._instance, JSON.parse(storedState));
-            }
-        }
-        
-        return PendantState._instance
+  static get instance(): PendantState {
+    if (!PendantState._instance) {
+      PendantState._instance = new PendantState();
+      var storedState = localStorage.getItem(PendantState.statekey);
+      if (storedState) {
+        PendantState._instance = Object.assign(PendantState._instance, JSON.parse(storedState));
+      }
     }
 
-    private static readonly statekey = "mobilependantstate";
-   
-    private constructor(){}
+    return PendantState._instance;
+  }
 
-    connection= new StateConnectionSettings()
+  private static readonly statekey = 'mobilependantstate';
 
-    save() {
-        localStorage.setItem(PendantState.statekey, JSON.stringify(this));
-    }
+  private constructor() {}
+
+  connection = new StateConnectionSettings();
+
+  save() {
+    localStorage.setItem(PendantState.statekey, JSON.stringify(this));
+  }
 }
