@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.btn {
+    text-transform: none;
+    border-radius: 3px;
+}
+.btn-group {
+    border-radius: 3px;
+}

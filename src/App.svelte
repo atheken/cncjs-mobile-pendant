@@ -20,7 +20,7 @@
 	let tabs = [
 		{
 		id: "commands",
-		alt: "Machine Device Interface",
+		alt: "Session Commands",
 		icon: commands
 	},
 	{
@@ -29,32 +29,18 @@
 		icon: job
 	}, {
 		id: "connection",
+		alt: "Connection Status",
 		icon: connection
 	},
 	{
 		id: "jog",
+		alt: "Jog Machine",
 		icon: jog
 	}]
 	let selected_tab_id = "commands"
 	let error;
 
 	onMount(async () => {
-
-		let model = {
-			coords : {
-				work : {
-					x : 0.2 ,y: 1.1, z: 2.2
-				},
-				machine: {
-					x : 0.1, y: 2.2, z: 3.1
-				}
-			},
-			units: 'mm',
-			jog_step: 1,
-			loaded_file: 'process.nc',
-			locked: false
-		}
-
 
 		try{
 			controller = await Controller.Initialize();
@@ -71,7 +57,7 @@
 	{#if error}
 	The following error: {error}
 	{:else}
-	Loading...
+		<div class="text-center align-middle">Mobile Pendant is Loading</div>
 	{/if}
 {:else}
 		<ConnectionPanel model={controller} />
@@ -85,11 +71,12 @@
 		{:else if selected_tab_id == 'connection'}
 			<DisconnectControl model={controller} />
 		{/if}
-		<div class="btm-nav btm-nav-sm">
+		<div class="btm-nav btm-nav-sm ">
 			{#each tabs as t(t.id)}
-				<button on:click={()=> selected_tab_id = t.id } class:active={t.id == selected_tab_id} data-tab-selection={t.id}>
-					<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><image width="24" height="24"
-						 xlink:href="{t.icon}"></image></svg></button>
+				<button class="bg-primary" on:click={()=> selected_tab_id = t.id } class:active={t.id == selected_tab_id} class:text-accent={t.id == selected_tab_id}
+					data-tab-selection={t.id}><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><image width="24" height="24"
+						 xlink:href="{t.icon}"></image></svg>
+				</button>
 			{/each}
 		</div>
 	</div>

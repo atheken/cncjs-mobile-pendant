@@ -117,6 +117,13 @@
             "enabled": true,
             "title": "ECHO COMMAND TEST",
             "commands": "echo 'asdf'"
+        },
+        {
+            "id": "85e7e0c9-e783-416e-bd4a-DSDSSDS",
+            "mtime": 1670251226409,
+            "enabled": true,
+            "title": "KILL CNCJS",
+            "commands": "kill -9 $(pgrep node)"
         }
     ]
 }

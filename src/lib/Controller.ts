@@ -1,5 +1,5 @@
 import io from "socket.io-client";
-import { writable, get } from "svelte/store";
+import { writable, get, type Writable, type Readable } from "svelte/store";
 import { ulid } from 'ulid';
 import DirectoryListing from "./DirectoryListing";
 import type MachineDeviceInterface from "./MachineDeviceInterface";
@@ -60,8 +60,9 @@ export class WorkflowState{
 }
 
 export class Controller {
-    request_init: RequestInit;
-    
+    private _commands = writable<CommandQueryResult>();
+    private _mdi_commands = writable<MachineDeviceInterface[]>();
+
     public static async Initialize() : Promise<Controller> {
         var c = new Controller();
         await c.configure();
@@ -100,10 +101,6 @@ export class Controller {
 
             this.token = token;
             
-            this.request_init =  { headers : {
-                "Authorization" : `Bearer ${this.token}`
-            }};
-
             this.socket = new io({
                 autoConnect : false,
                 query : {
@@ -116,6 +113,14 @@ export class Controller {
             
             // initialize serial list.
             this.refresh_serial_list();
+
+            this.socket.on("config:change", async ()=>{
+                this._commands.set(await this.request_json(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`));
+                this._mdi_commands.set((await this.request_json('../api/mdi')).records);
+            });
+            
+            this._commands.set(await this.request_json(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`));
+            this._mdi_commands.set((await this.request_json('../api/mdi')).records);
 
             ["connect_error", "connect_timeout", "error", "disconnect", "reconnect", "reconnect_attempt",
                 "reconnecting", "reconnect_error", "reconnect_failed"]
@@ -157,29 +162,9 @@ export class Controller {
         this.socket.emit(write, get(this.active_port).port, command, { _sender_ : this.controller_id });
     }
 
-    async commands() : Promise<CommandQueryResult> {
-        try{
-            let results = await fetch(`../api/commands?${new URLSearchParams({"pagination" : "false"})}`, this.request_init);
-            return await results.json();
-        }
-        catch(err){
-            console.error(err);
-            throw err;
-        }
-    }
-
-    async mdi_commands() : Promise<MachineDeviceInterface[]> {
-        try{
-            let results = await fetch('../api/mdi', { headers : {
-                "Authorization" : `Bearer ${await this.token}`
-            }});
-            return (await results.json()).records;
-        }
-        catch(err){
-            console.error(err);
-            throw err;
-        }
-    }
+    get commands(): Readable<CommandQueryResult>  { return this._commands; }
+    
+    get mdi_commands() : Readable<MachineDeviceInterface[]> { return this._mdi_commands; }
 
     home() {
         this.socket.emit("command", this.port_path, "homing")
@@ -206,15 +191,15 @@ export class Controller {
     }
 
     async execute_command(record:CommandRecord){
-        await fetch(`/api/commands/run/${record.id}`, Object.assign(this.request_init, {method : "POST"}));
+        await this.request_json(`/api/commands/run/${record.id}`, "POST");
     }
 
     execute_mdi(record:MachineDeviceInterface){
         this.socket.emit("command", this.port_path, "gcode", record.command)
     }
 
-    async list_files(path:string = "") {
-        var result = await (await fetch("/api/watch/files", Object.assign({path}, this.request_init))).json();
+    async list_files(path:string = "") : Promise<DirectoryListing> {
+        var result = await this.request_json("/api/watch/files", "POST", {body: JSON.stringify({path})});
         var retval = Object.assign(new DirectoryListing(), result);
         return retval;
     }
@@ -223,10 +208,7 @@ export class Controller {
 
     async macros() : Promise<any[]> {
         try{
-            let results = await fetch('../api/macros', { headers : {
-                "Authorization" : `Bearer ${await this.token}`
-            }});
-            return (await results.json()).records;
+            return (await this.request_json('../api/macros')).records;
         }
         catch(err){
             console.error(err);
@@ -234,4 +216,14 @@ export class Controller {
         }
     }
 
+    async request_json(url:string|RequestInfo, method:"GET"|"POST" = "GET", options:RequestInit = {}) : Promise<any> {
+        
+        let h = new Headers();
+        h.set("Authorization", `Bearer ${this.token}`);
+        h.set("Content-Type" , "application/json");
+        options.headers = h;
+        options.method = method;
+        
+        return await (await fetch(url, options)).json();
+    }
 }

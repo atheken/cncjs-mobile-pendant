@@ -1,41 +1,46 @@
 
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { CommandRecord, Controller } from "./Controller";
+    import type { Readable } from "svelte/store";
+    import type { CommandQueryResult, CommandRecord, Controller } from "./Controller";
     import type MachineDeviceInterface from "./MachineDeviceInterface";
     export let model:Controller;
 
-	let commands:CommandRecord[] = [];
-	let mdi: MachineDeviceInterface[] = [];
-
-	onMount(async ()=> {
-		commands = (await model.commands()).records;
-		mdi = (await model.mdi_commands());
-	});
-
+	let primary_commands = [
+		{click : model.home, name: "Home", classes:["btn-success"]},
+		{click : model.unlock, name: "Unlock"},
+		{click : model.sleep, name: "Sleep"},
+		{click : model.reset, name: "Reset"},
+		{click : model.feedhold, name: "Feedhold", classes:["btn-error"]},
+		{click : model.cycle_start, name: "Cycle Start"},
+	]
+	let commands:Readable<CommandQueryResult> = model.commands;
+	let mdi: Readable<MachineDeviceInterface[]> = model.mdi_commands;
+	
 </script>
 <div>
-<button class="btn btn-success" on:click={()=> model.home() }>
-	Home
-</button>
-<button class="btn bg-red-500 border-red-600 text-rose-200" on:click={ ()=> model.feedhold() }>
-	Feedhold
-</button>
-<button class=btn on:click={ ()=> model.unlock() }>
-	Unlock
-</button>
-<button class=btn on:click={() => model.cycle_start() } >
-	Continue
-</button>
-<button class=btn on:click={() => model.reset() } >
-	Reset
-</button>
-<hr/>
-{#each commands as c(c.id)}
-	<button class=btn value="{c.id}" disabled="{!c.enabled}" on:click={()=> model.execute_command(c) }> {c.title}</button>
-{/each}
-<hr/>
-{#each mdi as m(m.id)}
-	<button class=btn value="{m.id}" on:click={()=> model.execute_mdi(m) } >{m.name}</button>
-{/each}
+	<div class="divider text-xs text-info">Machine State:</div>
+	<div class="grid justify-items-center grid-cols-3">
+		{#each primary_commands as p}
+			<div class="w-full px-1 py-1 align-middle">
+				<button class="align-middle btn btn-sm w-full {p.classes?.join(' ')}" on:click={()=> p.click() }>{p.name}</button>
+			</div>
+		{/each}
+	</div>
+	{#if $commands.records.length > 0}
+	<div class="divider text-xs text-info">Commands:</div>
+	<div class="grid justify-items-center grid-cols-1">
+		{#each $commands.records as c(c.id)}
+			<div class="w-full px-1 py-1 align-middle"><button class="btn-outline align-middle btn btn-sm w-full" value="{c.id}" disabled="{!c.enabled}" on:click={()=> model.execute_command(c) }> {c.title}</button></div>
+		{/each}
+	</div>
+	{/if}
+	{#if $mdi.length > 0 }
+	<div class="divider text-xs text-info">Machine Device Interface:</div>
+	<div class="grid justify-items-center grid-cols-3">
+		{#each $mdi as m(m.id)}
+			<div class="w-full px-1 py-1 align-middle"><button class="align-middle btn btn-sm w-full" value="{m.id}" on:click={()=> model.execute_mdi(m) } >{m.name}</button></div>
+		{/each}
+	</div>
+	{/if}
 </div>
