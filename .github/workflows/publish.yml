@@ -9,14 +9,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment:
+    env:
       node_version: 19.7
     steps:
       - uses: actions/checkout@v3
-      - name: Configure Node.js ${{ environment.node_version }}
+      - name: Configure Node.js ${{ env.node_version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{  environment.node_version }}
+          node-version: ${{  env.node_version }}
           cache: 'npm'
       - run: npm install
       - run: npm run build
