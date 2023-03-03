@@ -12,13 +12,28 @@
             "path": "/dev/ttySIM"
         }
     ],
-    "controller" : [ "Grbl" ],
+    "controller": [
+        "Grbl"
+    ],
     "watchDirectory": "/root/data/",
     "secret": "it's a testing secret",
-    "macros": [],
-    "mountPoints" :[
-        {"route" : "/mobile", "target" : "/root/dist"},
-        {"route" : "/tinyweb", "target" : "https://cncjs.github.io/cncjs-pendant-tinyweb/src/"}
+    "macros": [
+        {
+            "id": "68431849-4218-4e7e-82dc-e401a8344ef0",
+            "mtime": 1677852552986,
+            "name": "CONFIGURE",
+            "content": "%wait\n$100=0.001\n$101=0.001\n$102=0.001\n$110=10000\n$111=10000\n$112=10000\n$120=100\n$121=100\n$122=100\n$130=1000\n$131=1000\n$132=1000\n$10=2\n$21=1\n$$;\n;"
+        }
+    ],
+    "mountPoints": [
+        {
+            "route": "/mobile",
+            "target": "/root/dist"
+        },
+        {
+            "route": "/tinyweb",
+            "target": "https://cncjs.github.io/cncjs-pendant-tinyweb/src/"
+        }
     ],
     "mdi": [
         {
