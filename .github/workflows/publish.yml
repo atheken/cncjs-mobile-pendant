@@ -2,9 +2,9 @@ name: Build and publish
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ['master']
   pull_request:
-    branches: [ "master" ]
+    branches: ['master']
 
 # Allow the workflow to write to GH pages:
 permissions:
@@ -13,9 +13,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: true
-  
 jobs:
   build:
     runs-on: ubuntu-latest
