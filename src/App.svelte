@@ -46,7 +46,7 @@
 	});
 </script>
 
-<div class="container h-full">
+<div class="container">
 	{#if error}
 		<div class="flex h-full items-center justify-center">
 			<div class="text-center align-middle text-sm text-rose-900">

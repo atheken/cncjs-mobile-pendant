@@ -59,6 +59,47 @@ export class WorkflowState {
 	}
 }
 
+export interface GrblState {
+	status: {
+		activeState: string;
+		mpos: {
+			x: number;
+			y: number;
+			z: number;
+		};
+		wpos: {
+			x: number;
+			y: number;
+			z: number;
+		};
+		ov: number[];
+		subState: number;
+		wco: {
+			x: string;
+			y: string;
+			z: string;
+		};
+		feedrate: number;
+		spindle: number;
+	};
+	parserstate: {
+		modal: {
+			motion: string;
+			wcs: string;
+			plane: string;
+			units: string;
+			distance: string;
+			feedrate: string;
+			program: string;
+			spindle: string;
+			cooland: string;
+		};
+		tool: string;
+		feedrate: string;
+		spindle: string;
+	};
+}
+
 export class Controller {
 	start_or_resume_gcode() {
 		if (get(this.workflow_state.status) == 'paused') {
@@ -98,6 +139,11 @@ export class Controller {
 	private token: string;
 	private _macros = writable<any[]>();
 	private _loaded_gcode = writable<string>();
+	private _grblstate = writable<GrblState>();
+
+	get grbl_state(): Readable<GrblState> {
+		return this._grblstate;
+	}
 
 	get loaded_gcode(): Readable<string> {
 		return this._loaded_gcode;
@@ -257,6 +303,8 @@ export class Controller {
 			this.socket.on('serialport:open', (f) => {
 				this.active_port.set(f);
 			});
+
+			this.socket.on('Grbl:state', (g) => this._grblstate.set(g));
 
 			this.socket.on('serialport:close', () => {
 				this.active_port.set(null);

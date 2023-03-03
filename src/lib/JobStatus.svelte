@@ -32,12 +32,15 @@
 			model.load_gcode(item.name, await item.text());
 		}
 	});
+
+	let grbl = model.grbl_state;
 </script>
 
 <div>
 	<div class:blur-sm={load_file_requested}>
 		<div class="divider text-xs text-info">Machine State</div>
 		Status: {$status}
+		<pre class="code text-xs">{JSON.stringify($grbl, null, 2)}</pre>
 		<div class="divider text-xs text-info">Loaded G-code</div>
 		<div>
 			<span class="text-label text-xs">Loaded File:</span>
