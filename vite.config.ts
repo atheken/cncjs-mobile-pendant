@@ -5,10 +5,17 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 // https://vitejs.dev/config/
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
-  base: '',
+  base: '/mobile',
   plugins: [svelte()],
   server: {
-    host: true
+    hmr : {
+      host: "localhost",
+      clientPort: 5173 
+    },
+    host: true, 
+      proxy : {
+        //this will be useful to enable HMR at a later time.
+      }
   },
   build: {
     sourcemap: true,

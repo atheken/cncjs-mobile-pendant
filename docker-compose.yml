@@ -3,13 +3,11 @@ services:
     image: atheken/vite-dev
     ports:
       - 5173:5173
-      - 4173:4173
     expose:
       - 5173
-      - 4173
     volumes:
       - .:/data
-    entrypoint: '/start npm run watch'
+    entrypoint: '/start npm run dev'
   cncjs:
     build: ./cncjs/container
     volumes:
