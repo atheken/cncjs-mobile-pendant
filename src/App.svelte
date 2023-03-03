@@ -49,13 +49,13 @@
 <div class="container h-full">
 	{#if error}
 		<div class="flex h-full items-center justify-center">
-			<div class="text-center align-middle text-rose-900">
+			<div class="text-center align-middle text-sm text-rose-900">
 				<Icon icon="warn" class="text-5xl text-rose-900" />
 				<div class="text-xl">Well, this is embarrasing.</div>
-				<div class="p-4 text-justify text-sm text-neutral-500">
+				<div class="p-4 text-justify text-neutral-500">
 					The app is currently unavailable. You may need to restart Cnc.js and reload this app to fix the problem.
 				</div>
-				<button on:click={() => window.location.reload()}>Try Again...</button>
+				<button class="link" on:click={() => window.location.reload()}>Try Again...</button>
 			</div>
 		</div>
 	{:else if !controller}
