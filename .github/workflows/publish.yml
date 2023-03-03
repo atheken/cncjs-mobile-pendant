@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       node_version: 19.7
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v3
       - name: Configure Node.js ${{ env.node_version }}
@@ -21,8 +20,27 @@ jobs:
           cache: 'npm'
       - run: npm install
       - run: npm run build
+      - name: Save ./dist
+        id: dist-cache
+        uses: actions/cache@v3
+        with:
+          path: ./dist
+          key: $GITHUB_SHA
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Setup Pages
         uses: actions/configure-pages@v3
+      - name: Load ./dist
+        id: dist-cache
+        uses: actions/cache@v3
+        with:
+          path: ./dist
+          key: $GITHUB_SHA
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
