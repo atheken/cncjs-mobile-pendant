@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --base=/mobile",
     "watch": "vite build -w",
-    "build": "vite build --base=''",
+    "build": "vite build",
     "preview": "vite preview",
     "format": "prettier 'src/**/*.ts' --write",
     "check": "svelte-check --tsconfig ./tsconfig.json"
