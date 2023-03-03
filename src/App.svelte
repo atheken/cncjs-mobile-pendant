@@ -49,7 +49,7 @@
 <div class="container mx-auto">
 	{#if !controller}
 		{#if error}
-			<div class="bg-error align-middle text-error">><Icon icon="warn" />The app is currently unavailable.</div>
+			<div class="bg-error align-middle text-error">><Icon icon="warn" />The app is currently unavailable...</div>
 		{:else}
 			<div class="text-center align-middle">Mobile Pendant is Loading</div>
 		{/if}
