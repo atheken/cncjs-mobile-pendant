@@ -191,7 +191,7 @@ export class Controller {
 			let cnc = JSON.parse(localStorage.getItem('cnc') || '{}');
 			token ||= cnc?.state?.session?.token;
 			if (!token) {
-				let result = (await (await fetch('../signin', { method: 'POST' })).json()) as SigninResult;
+				let result = (await (await fetch('/api/signin', { method: 'POST' })).json()) as SigninResult;
 				token = result.token;
 			}
 
@@ -276,9 +276,9 @@ export class Controller {
 	}
 
 	private async load_config() {
-		this._commands.set(await this.request_json(`../api/commands?${new URLSearchParams({ pagination: 'false' })}`));
-		this._mdi_commands.set((await this.request_json('../api/mdi')).records);
-		this._macros.set((await this.request_json('../api/macros')).records);
+		this._commands.set(await this.request_json(`/api/commands?${new URLSearchParams({ pagination: 'false' })}`));
+		this._mdi_commands.set((await this.request_json('/api/mdi')).records);
+		this._macros.set((await this.request_json('/api/macros')).records);
 	}
 
 	private async request_json(
