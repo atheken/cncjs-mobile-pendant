@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import type { Readable } from 'svelte/store';
 	import type { CommandQueryResult, CommandRecord, Controller } from './Controller';
+	import Divider from './Divider.svelte';
 	import type MachineDeviceInterface from './MachineDeviceInterface';
 	export let model: Controller;
 
@@ -18,22 +19,22 @@
 </script>
 
 <div>
-	<div class="divider text-xs text-info">Machine Control</div>
+	<Divider>Machine Control</Divider>
 	<div class="grid grid-cols-3 justify-items-center">
 		{#each primary_commands as p}
 			<div class="w-full px-1 py-1 align-middle">
-				<button class="btn-sm btn w-full align-middle {p.classes?.join(' ')}" on:click={() => p.click()}
+				<button class="btn btn-sm w-full align-middle {p.classes?.join(' ')}" on:click={() => p.click()}
 					>{p.name}</button>
 			</div>
 		{/each}
 	</div>
 	{#if $commands.records.length > 0}
-		<div class="divider text-xs text-info">Commands</div>
+		<Divider>Commands</Divider>
 		<div class="grid grid-cols-1 justify-items-center">
 			{#each $commands.records as c (c.id)}
 				<div class="w-full px-1 py-1 align-middle">
 					<button
-						class="btn-outline btn-sm btn w-full align-middle"
+						class="btn-outline btn btn-sm w-full align-middle"
 						value={c.id}
 						disabled={!c.enabled}
 						on:click={() => model.execute_command(c)}>
@@ -43,11 +44,11 @@
 		</div>
 	{/if}
 	{#if $mdi.length > 0}
-		<div class="divider text-xs text-info">Machine Device Interface</div>
+		<Divider>Machine Device Interface</Divider>
 		<div class="grid grid-cols-3 justify-items-center">
 			{#each $mdi as m (m.id)}
 				<div class="w-full px-1 py-1 align-middle">
-					<button class="btn-sm btn w-full align-middle" value={m.id} on:click={() => model.execute_mdi(m)}
+					<button class="btn btn-sm w-full align-middle" value={m.id} on:click={() => model.execute_mdi(m)}
 						>{m.name}</button>
 				</div>
 			{/each}
