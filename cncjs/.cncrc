@@ -27,8 +27,8 @@
     ],
     "mountPoints": [
         {
-            "route": "/mobile",
-            "target": "http://vite:5173/mobile/"
+            "route": "/mobile-dev",
+            "target": "http://vite:5173/mobile-dev"
         },
         {
             "route": "/tinyweb",
