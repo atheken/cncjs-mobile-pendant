@@ -160,6 +160,18 @@ export interface FeederStatus {
 }
 
 export class Controller {
+	jog(x: number, y: number, z: number, multiplier: number, mode: 'relative' | 'absolute') {
+		let location = x != null ? `X${x * multiplier} ` : '';
+		location += y != null ? `Y${y * multiplier} ` : '';
+		location += z != null ? `Z${z * multiplier} ` : '';
+
+		if (mode == 'absolute') {
+			this.write(`G0 ${location} `);
+		} else {
+			this.write(`G91 ; G0 ${location}; G90 ; `);
+		}
+	}
+
 	public static async Initialize(): Promise<Controller> {
 		var c = new Controller();
 		await c.configure();

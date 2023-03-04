@@ -68,7 +68,7 @@
 			{:else if selected_tab_id == 'job'}
 				<JobStatus model={controller} />
 			{:else if selected_tab_id == 'jog'}
-				<JogControls />
+				<JogControls model={controller} />
 			{:else if selected_tab_id == 'connection'}
 				<DisconnectControl model={controller} />
 			{/if}
