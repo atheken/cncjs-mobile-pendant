@@ -7,12 +7,12 @@
 	export let model: Controller;
 
 	let primary_commands = [
-		{ click: model.home, name: 'Home', classes: ['btn-success'] },
-		{ click: model.unlock, name: 'Unlock' },
-		{ click: model.sleep, name: 'Sleep' },
-		{ click: model.reset, name: 'Reset' },
-		{ click: model.feedhold, name: 'Feedhold', classes: ['btn-error'] },
-		{ click: model.cycle_start, name: 'Cycle Start' }
+		{ click: () => model.home(), name: 'Home', classes: ['btn-success'] },
+		{ click: () => model.unlock(), name: 'Unlock' },
+		{ click: () => model.sleep(), name: 'Sleep' },
+		{ click: () => model.reset(), name: 'Reset' },
+		{ click: () => model.feedhold(), name: 'Feedhold', classes: ['btn-error'] },
+		{ click: () => model.cycle_start(), name: 'Cycle Start' }
 	];
 	let commands: Readable<CommandQueryResult> = model.commands;
 	let mdi: Readable<MachineDeviceInterface[]> = model.mdi_commands;
@@ -23,8 +23,8 @@
 	<div class="grid grid-cols-3 justify-items-center">
 		{#each primary_commands as p}
 			<div class="w-full px-1 py-1 align-middle">
-				<button class="btn btn-sm w-full align-middle {p.classes?.join(' ')}" on:click={() => p.click()}
-					>{p.name}</button>
+				<button class="btn-sm btn w-full align-middle {p.classes?.join(' ')}" on:click={p.click}>
+					{p.name}</button>
 			</div>
 		{/each}
 	</div>
@@ -34,7 +34,7 @@
 			{#each $commands.records as c (c.id)}
 				<div class="w-full px-1 py-1 align-middle">
 					<button
-						class="btn-outline btn btn-sm w-full align-middle"
+						class="btn-outline btn-sm btn w-full align-middle"
 						value={c.id}
 						disabled={!c.enabled}
 						on:click={() => model.execute_command(c)}>
@@ -48,7 +48,7 @@
 		<div class="grid grid-cols-3 justify-items-center">
 			{#each $mdi as m (m.id)}
 				<div class="w-full px-1 py-1 align-middle">
-					<button class="btn btn-sm w-full align-middle" value={m.id} on:click={() => model.execute_mdi(m)}
+					<button class="btn-sm btn w-full align-middle" value={m.id} on:click={() => model.execute_mdi(m)}
 						>{m.name}</button>
 				</div>
 			{/each}
