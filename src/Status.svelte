@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte/types/runtime/internal/lifecycle';
+	import { createEventDispatcher } from 'svelte';
 	import type { Controller } from './lib/Controller';
 
 	export let model: Controller;
