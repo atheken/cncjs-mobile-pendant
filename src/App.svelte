@@ -14,7 +14,7 @@
 		{
 			id: 'commands',
 			alt: 'Session Commands',
-			icon: 'server'
+			icon: 'terminal'
 		},
 		{
 			id: 'job',
@@ -24,12 +24,12 @@
 		{
 			id: 'connection',
 			alt: 'Connection Status',
-			icon: 'swap'
+			icon: 'bolt'
 		},
 		{
 			id: 'jog',
 			alt: 'Jog Machine',
-			icon: 'move-alt'
+			icon: 'gamepad'
 		}
 	];
 	let selected_tab_id = 'commands';

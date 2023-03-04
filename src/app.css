@@ -9,3 +9,16 @@
 .btn-group {
   border-radius: 3px;
 }
+
+.zero-xy::before{
+  @layer .font-mono;
+  @layer .font-thin;
+  content: 'X0,Y0';
+  
+}
+
+.zero-z::before{
+  @layer .font-mono;
+  @layer .font-thin;
+  content: 'Z0';
+}

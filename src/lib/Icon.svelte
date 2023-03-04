@@ -2,7 +2,7 @@
 	export let icon: string;
 
 	$$props.class ||= '';
-	$$props.class += ` mu mu-${icon}`;
+	$$props.class += ` fa fa-${icon}`;
 	delete $$props.icon;
 </script>
 
