@@ -7,6 +7,8 @@
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
 	import DisconnectControl from './lib/DisconnectControl.svelte';
 	import Icon from './lib/Icon.svelte';
+	import Status from './Status.svelte';
+	import { blank_object } from 'svelte/internal';
 
 	let controller: Controller;
 	let active_port;
@@ -61,6 +63,7 @@
 	{:else if !controller}
 		<div class="text-center align-middle">Mobile Pendant is Loading</div>
 	{:else}
+		<Status model={controller} />
 		<ConnectionPanel model={controller} />
 		<div class={!$active_port ? 'blur-sm' : ''}>
 			{#if selected_tab_id == 'commands'}
@@ -69,8 +72,8 @@
 				<JobStatus model={controller} />
 			{:else if selected_tab_id == 'jog'}
 				<JogControls model={controller} />
-			{:else if selected_tab_id == 'connection'}
-				<DisconnectControl model={controller} />
+			{:else if selected_tab_id == 'info'}
+				Intentionally blank_object..
 			{/if}
 			<div class="btm-nav btm-nav-sm ">
 				{#each tabs as t (t.id)}

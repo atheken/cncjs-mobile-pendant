@@ -188,9 +188,12 @@ export class Controller {
 	private _sender_status = writable<SenderStatus>();
 	private _commands = writable<CommandQueryResult>();
 	private _mdi_commands = writable<MachineDeviceInterface[]>();
+	private _active_port = writable<SerialPort>(null);
 
 	ports = writable<SerialPort[]>([]);
-	active_port = writable<SerialPort>(null);
+	get active_port(): Readable<SerialPort> {
+		return this._active_port;
+	}
 	connected_to_server = writable<boolean>(false);
 	workflow_state: WorkflowState;
 
@@ -387,13 +390,17 @@ export class Controller {
 			this._socket.on('sender:status', (s) => this._sender_status.set(s));
 
 			this._socket.on('serialport:open', (f) => {
-				this.active_port.set(f);
+				this._active_port.set(f);
+			});
+
+			this._socket.on('serialport:error', (f) => {
+				//this._active_port.set(f);
 			});
 
 			this._socket.on('Grbl:state', (g) => this._grbl_state.set(g));
 
 			this._socket.on('serialport:close', () => {
-				this.active_port.set(null);
+				this._active_port.set(null);
 				this.refresh_serial_list();
 			});
 
