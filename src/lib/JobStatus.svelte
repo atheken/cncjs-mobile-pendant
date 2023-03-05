@@ -4,6 +4,7 @@
 	import type { DirectoryEntry } from './DirectoryListing';
 	import FileBrowser from './FileBrowser.svelte';
 	import Icon from './Icon.svelte';
+	import Modal from './Modal.svelte';
 
 	export let model: Controller;
 	let state = model.workflow_state;
@@ -65,7 +66,7 @@
 					model.start_or_resume_gcode();
 				}}><Icon icon="play" /></button>
 			<button
-				class="btn-primary btn-sm"
+				class="btn-info btn-sm"
 				on:click={() => {
 					model.pause_gcode();
 				}}><Icon icon="pause" /></button>
@@ -73,22 +74,23 @@
 				class="btn-warning btn-sm"
 				on:click={() => {
 					model.stop_gcode();
-				}}><Icon icon="box-full" /></button>
+				}}><Icon icon="stop" /></button>
 			<button
 				class="btn-error btn-sm"
 				on:click={() => {
 					model.unload_gcode();
 				}}
-				><Icon icon="fail" />
+				><Icon icon="close" />
 			</button>
 		</div>
 	</div>
-	<div class="modal" class:modal-open={load_file_requested} on:keyup={(e) => console.log(e.code)}>
-		<div class="modal-box">
+	<Modal visible={load_file_requested}>
+		<div slot="heading">Load G-code</div>
+		<div slot="content">
 			<FileBrowser {model} bind:selected_file bind:file_path />
 			<div class="modal-action">
 				<button disabled={!selected_file} class="btn" on:click={() => load_file()}>Select file</button>
 			</div>
 		</div>
-	</div>
+	</Modal>
 </div>
