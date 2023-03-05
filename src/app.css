@@ -22,3 +22,17 @@
   @layer .font-thin;
   content: 'Z0';
 }
+
+.mdl {
+  transition: 0.5s;
+}
+
+.mdl {
+  transform: translateY(100%);
+  transition: 0.50s;
+}
+
+.mdl-visible.mdl {
+  transition: 0.50s;
+  transform: translateY(0%);
+}

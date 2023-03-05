@@ -43,14 +43,18 @@
 </script>
 
 <Modal visible={!$active_port?.port || $displayPanel}>
-	<span slot="heading">Please select a serial port on which to connect:</span>
-	<div slot="content">
-		<select class="select-primary select select-sm w-2/3" bind:value={selected}>
-			{#each $ports as p (p.port)}
-				<option class:inuse={p.inuse} class:available={!p.inuse} value={p}>{p.port}</option>
-			{/each}
-		</select>
-		<button class="btn-outline btn-sm btn" on:click={() => model.refresh_serial_list()}><Icon icon="refresh" /></button>
+	<span slot="heading">Connection Options</span>
+	<div slot="content" class="w-full">
+		<label class="block"
+			>Serial Port:
+			<select class="select-primary select select-sm w-2/3" bind:value={selected}>
+				{#each $ports as p (p.port)}
+					<option class:inuse={p.inuse} class:available={!p.inuse} value={p}>{p.port}</option>
+				{/each}
+			</select>
+			<button class="btn-outline btn-sm btn" on:click={() => model.refresh_serial_list()}
+				><Icon icon="refresh" /></button>
+		</label>
 		<div class="form-control w-full">
 			<label for="reconnect">
 				<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.autoconnect} />

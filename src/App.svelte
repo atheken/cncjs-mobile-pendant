@@ -7,7 +7,7 @@
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
 	import Icon from './lib/Icon.svelte';
 	import Status from './Status.svelte';
-	
+
 	let controller: Controller;
 	let active_port;
 	let tabs = [
@@ -46,7 +46,7 @@
 	});
 </script>
 
-<div class="container">
+<div class="h-full w-full">
 	{#if error}
 		<div class="flex h-full items-center justify-center">
 			<div class="text-center align-middle text-sm text-rose-900">
@@ -63,7 +63,7 @@
 	{:else}
 		<Status model={controller} />
 		<ConnectionPanel model={controller} />
-		<div class={!$active_port ? 'blur-sm' : ''}>
+		<div>
 			{#if selected_tab_id == 'commands'}
 				<StandardControls model={controller} />
 			{:else if selected_tab_id == 'job'}
