@@ -1,6 +1,13 @@
+<script lang="ts" context="module">
+	export let displayPanel = writable(false);
+</script>
+
 <script lang="ts">
+	import Modal from './Modal.svelte';
 	import type { Controller, SerialPort } from './Controller';
+	import Icon from './Icon.svelte';
 	import PendantState from './PendantState';
+	import { writable } from 'svelte/store';
 	export let model: Controller;
 
 	let { ports, active_port } = model;
@@ -24,6 +31,7 @@
 		state.save();
 		model.open_connection(selected);
 		selected = null;
+		displayPanel.set(false);
 	}
 
 	function disconnect() {
@@ -34,25 +42,22 @@
 	}
 </script>
 
-<div class="modal" class:modal-open={!$active_port?.port}>
-	<div class="modal-box">
-		<h4>Please select a serial port on which to connect:</h4>
-		<select class="select-primary select" bind:value={selected}>
+<Modal visible={!$active_port?.port || $displayPanel}>
+	<span slot="heading">Please select a serial port on which to connect:</span>
+	<div slot="content">
+		<select class="select-primary select select-sm w-2/3" bind:value={selected}>
 			{#each $ports as p (p.port)}
 				<option class:inuse={p.inuse} class:available={!p.inuse} value={p}>{p.port}</option>
 			{/each}
 		</select>
-		<button class="btn-outline btn btn-info" on:click={() => model.refresh_serial_list()}>Refresh</button>
-		<div class="form-control">
-			<input type="checkbox" id="reconnect" class="checkbox" bind:checked={state.connection.autoconnect} />
-			<label for="reconnect">Connect Automatically</label>
+		<button class="btn-outline btn-sm btn" on:click={() => model.refresh_serial_list()}><Icon icon="refresh" /></button>
+		<div class="form-control w-full">
+			<label for="reconnect">
+				<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.autoconnect} />
+				Connect Automatically</label>
 		</div>
 
-		<div class="modal-action">
-			<button class="btn btn-success" disabled={!selected} on:click={() => connect()}>Connect</button>
-		</div>
+		<button class="btn-success btn-sm btn justify-end text-right" disabled={!selected} on:click={() => connect()}>
+			Connect</button>
 	</div>
-</div>
-
-<style>
-</style>
+</Modal>

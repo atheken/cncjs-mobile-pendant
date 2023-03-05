@@ -5,11 +5,9 @@
 	import JobStatus from './lib/JobStatus.svelte';
 	import { onMount } from 'svelte';
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
-	import DisconnectControl from './lib/DisconnectControl.svelte';
 	import Icon from './lib/Icon.svelte';
 	import Status from './Status.svelte';
-	import { blank_object } from 'svelte/internal';
-
+	
 	let controller: Controller;
 	let active_port;
 	let tabs = [
@@ -90,6 +88,3 @@
 		</div>
 	{/if}
 </div>
-
-<style>
-</style>
