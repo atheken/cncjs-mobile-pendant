@@ -1,9 +1,4 @@
-export class StateConnectionSettings {
-	port: string;
-	autoconnect: boolean = false;
-	baud_rate: number;
-	use_error_correction: boolean = false;
-}
+import { ConnectionSettings } from './ConnectionSettings';
 
 export default class PendantState {
 	private static _instance: PendantState;
@@ -24,7 +19,7 @@ export default class PendantState {
 
 	private constructor() {}
 
-	connection = new StateConnectionSettings();
+	connection = new ConnectionSettings();
 
 	save() {
 		localStorage.setItem(PendantState.statekey, JSON.stringify(this));

@@ -1,6 +1,7 @@
 import io from 'socket.io-client';
 import { writable, get, type Readable } from 'svelte/store';
 import { ulid } from 'ulid';
+import type { ConnectionSettings } from './ConnectionSettings';
 import DirectoryListing from './DirectoryListing';
 import type MachineDeviceInterface from './MachineDeviceInterface';
 
@@ -228,10 +229,11 @@ export class Controller {
 	close_connection(): any {
 		this._socket.emit('close', get(this.active_port)?.port);
 	}
-	open_connection(port_path: string, baudrate: number) {
-		this._socket.emit('open', port_path, {
-			controllerType: 'Grbl',
-			baudrate: baudrate
+	open_connection(settings: ConnectionSettings) {
+		this._socket.emit('open', settings.port, {
+			controllerType: settings.controller_type,
+			baudrate: settings.baud_rate,
+			rtscts: settings.enable_hardware_flow_control
 		});
 	}
 

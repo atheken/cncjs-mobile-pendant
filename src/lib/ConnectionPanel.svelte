@@ -23,7 +23,7 @@
 
 	function connect() {
 		state.save();
-		model.open_connection(state.connection.port, state.connection.baud_rate);
+		model.open_connection(state.connection);
 		displayPanel.set(false);
 	}
 
@@ -68,8 +68,8 @@
 			</div>
 			<div class="form-control w-full">
 				<label for="reconnect">
-					<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.use_error_correction} />
-					Use Error Correction</label>
+					<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.enable_hardware_flow_control} />
+					Use Hardware Flow Control</label>
 			</div>
 		</div>
 		<button
