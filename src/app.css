@@ -36,3 +36,17 @@
   transition: 0.50s;
   transform: translateY(0%);
 }
+
+.status-header {
+  @apply w-full p-1 text-center align-middle text-sm;
+}
+
+.status.ok {
+  @apply bg-green-300;
+  @apply text-green-800;
+}
+
+.status.disconnected {
+  @apply bg-rose-300;
+  @apply text-rose-800;
+}
