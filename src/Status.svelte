@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Controller } from './lib/Controller';
 	import { displayPanel } from './lib/ConnectionPanel.svelte';
-	import { derived, get } from 'svelte/store';
+	import { derived } from 'svelte/store';
 
 	export let model: Controller;
 	let port = derived(model.active_port, (p) => p?.port || false);
