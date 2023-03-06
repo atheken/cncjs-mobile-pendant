@@ -228,10 +228,10 @@ export class Controller {
 	close_connection(): any {
 		this._socket.emit('close', get(this.active_port)?.port);
 	}
-	open_connection(selected: SerialPort) {
-		this._socket.emit('open', selected.port, {
+	open_connection(port_path: string, baudrate: number) {
+		this._socket.emit('open', port_path, {
 			controllerType: 'Grbl',
-			baudrate: 115200
+			baudrate: baudrate
 		});
 	}
 

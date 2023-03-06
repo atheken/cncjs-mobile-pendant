@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { Readable } from 'svelte/store';
 	import type { CommandQueryResult, CommandRecord, Controller } from './Controller';
 	import Divider from './Divider.svelte';
 	import Icon from './Icon.svelte';
-	import type MachineDeviceInterface from './MachineDeviceInterface';
 	export let model: Controller;
 
 	let primary_commands = [
@@ -21,7 +19,6 @@
 		{ click: () => model.cycle_start(), name: 'Cycle Start', icon: 'circle-play' }
 	];
 	let commands: Readable<CommandQueryResult> = model.commands;
-	let mdi: Readable<MachineDeviceInterface[]> = model.mdi_commands;
 </script>
 
 <div>
