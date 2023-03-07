@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Controller, SerialPort } from './lib/Controller';
+	import { Controller } from './lib/Controller';
 	import StandardControls from './lib/StandardControls.svelte';
 	import JogControls from './lib/JogControls.svelte';
 	import JobStatus from './lib/JobStatus.svelte';
@@ -46,7 +46,7 @@
 	});
 </script>
 
-<div class="h-full w-full">
+<div>
 	{#if error}
 		<div class="flex h-full items-center justify-center">
 			<div class="text-center align-middle text-sm text-rose-900">

@@ -34,7 +34,7 @@
 		}
 	});
 
-	let grbl = model.grbl_state;
+	let grbl = model.controller_state;
 	let sender = model.sender_status;
 	let feeder = model.feeder_status;
 </script>
@@ -42,7 +42,7 @@
 <div>
 	<div class:blur-sm={load_file_requested}>
 		<div class="divider text-xs text-info">Machine State</div>
-		Status: {$grbl.status.activeState}
+		Status: {$grbl?.status.activeState || 'Unknown'}
 		<div class="divider text-xs text-info">Loaded G-code</div>
 		<div>
 			<span class="text-label text-xs">Loaded File:</span>

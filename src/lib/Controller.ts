@@ -18,10 +18,10 @@ export class MachineStatus {
 	grbl_status: string | null;
 }
 
-export class SerialPort {
+export interface SerialPort {
 	port: string;
 	manufacturer: string;
-	inuse = false;
+	inuse: boolean;
 }
 
 export class StartupEvent {
@@ -111,7 +111,7 @@ export interface SenderStatus {
 	remainingTime: number;
 }
 
-export interface GrblState {
+export interface ControllerState {
 	status: {
 		activeState: string;
 		mpos: {
@@ -185,7 +185,7 @@ export class Controller {
 	private _feeder_status = writable<FeederStatus>();
 	private _macros = writable<any[]>();
 	private _loaded_gcode = writable<string>();
-	private _grbl_state = writable<GrblState>();
+	private _grbl_state = writable<ControllerState>();
 	private _sender_status = writable<SenderStatus>();
 	private _commands = writable<CommandQueryResult>();
 	private _mdi_commands = writable<MachineDeviceInterface[]>();
@@ -200,37 +200,37 @@ export class Controller {
 
 	start_or_resume_gcode() {
 		if (get(this.workflow_state.status) == 'paused') {
-			this._socket.emit('command', this.port_path, 'gcode:resume');
+			this.cncjs_command('command', this.port_path, 'gcode:resume');
 		} else {
-			this._socket.emit('command', this.port_path, 'gcode:start');
+			this.cncjs_command('command', this.port_path, 'gcode:start');
 		}
 	}
 
 	pause_gcode() {
-		this._socket.emit('command', this.port_path, 'gcode:pause');
+		this.cncjs_command('command', this.port_path, 'gcode:pause');
 	}
 
 	unload_gcode() {
-		this._socket.emit('command', this.port_path, 'gcode:unload');
+		this.cncjs_command('command', this.port_path, 'gcode:unload');
 	}
 
 	stop_gcode() {
-		this._socket.emit('command', this.port_path, 'gcode:stop', { force: true });
+		this.cncjs_command('command', this.port_path, 'gcode:stop', { force: true });
 	}
 
 	load_gcode(file: string, contents: string = null) {
 		if (contents != null) {
-			this._socket.emit('command', this.port_path, 'gcode:load', file, contents);
+			this.cncjs_command('command', this.port_path, 'gcode:load', file, contents);
 		} else {
-			this._socket.emit('command', this.port_path, 'watchdir:load', file);
+			this.cncjs_command('command', this.port_path, 'watchdir:load', file);
 		}
 	}
 
 	close_connection(): any {
-		this._socket.emit('close', get(this.active_port)?.port);
+		this.cncjs_command('close', get(this.active_port)?.port);
 	}
 	open_connection(settings: ConnectionSettings) {
-		this._socket.emit('open', settings.port, {
+		this.cncjs_command('open', settings.port, {
 			controllerType: settings.controller_type,
 			baudrate: settings.baud_rate,
 			rtscts: settings.enable_hardware_flow_control
@@ -238,12 +238,12 @@ export class Controller {
 	}
 
 	refresh_serial_list() {
-		this._socket.emit('list');
+		this.cncjs_command('list');
 	}
 
 	write(command: string, appendNewline: boolean = false) {
 		let write = appendNewline ? 'writeln' : 'write';
-		this._socket.emit(write, get(this.active_port).port, command, {
+		this.cncjs_command(write, get(this.active_port).port, command, {
 			_sender_: this._controller_id
 		});
 	}
@@ -261,27 +261,31 @@ export class Controller {
 	}
 
 	home() {
-		this._socket.emit('command', this.port_path, 'homing');
+		this.cncjs_command('command', this.port_path, 'homing');
 	}
 
 	feedhold() {
-		this._socket.emit('feedhold', this.port_path, 'feedhold');
+		this.cncjs_command('feedhold', this.port_path, 'feedhold');
 	}
 
 	unlock() {
-		this._socket.emit('command', this.port_path, 'unlock');
+		this.cncjs_command('command', this.port_path, 'unlock');
 	}
 
 	reset() {
-		this._socket.emit('command', this.port_path, 'reset');
+		this.cncjs_command('command', this.port_path, 'reset');
 	}
 
 	sleep() {
-		this._socket.emit('command', this.port_path, 'sleep');
+		this.cncjs_command('command', this.port_path, 'sleep');
+	}
+
+	cncjs_command(command, ...params: any[]) {
+		this._socket.emit(command, ...params);
 	}
 
 	cycle_start() {
-		this._socket.emit('command', this.port_path, 'cyclestart');
+		this.cncjs_command('command', this.port_path, 'cyclestart');
 	}
 
 	async execute_command(record: CommandRecord) {
@@ -289,7 +293,7 @@ export class Controller {
 	}
 
 	execute_mdi(record: MachineDeviceInterface) {
-		this._socket.emit('command', this.port_path, 'gcode', record.command);
+		this.cncjs_command('command', this.port_path, 'gcode', record.command);
 	}
 
 	async list_files(path: string = ''): Promise<DirectoryListing> {
@@ -304,7 +308,7 @@ export class Controller {
 		return this._sender_status;
 	}
 
-	get grbl_state(): Readable<GrblState> {
+	get controller_state(): Readable<ControllerState> {
 		return this._grbl_state;
 	}
 
@@ -381,7 +385,7 @@ export class Controller {
 			this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
 
 			//ignored events:
-			['controller:settings', 'controller:state'];
+			['controller:settings'];
 
 			this._socket.on('message', (m) => {
 				console.debug(m);
@@ -395,11 +399,21 @@ export class Controller {
 				this._active_port.set(f);
 			});
 
+			this._socket.on('serialport:change', (f: SerialPort) => {
+				// this code is potentially hazardous, as it is making an assumption that
+				// cncjs is only connected to a single port, which may not be true
+				if (f?.inuse) {
+					this._active_port.set(f);
+				} else {
+					this._active_port.set(null);
+				}
+			});
+
 			this._socket.on('serialport:error', (f) => {
 				//this._active_port.set(f);
 			});
 
-			this._socket.on('Grbl:state', (g) => this._grbl_state.set(g));
+			this._socket.on('controller:state', (_, g) => this._grbl_state.set(g));
 
 			this._socket.on('serialport:close', () => {
 				this._active_port.set(null);

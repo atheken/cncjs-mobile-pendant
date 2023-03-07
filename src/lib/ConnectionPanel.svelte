@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import Modal from './Modal.svelte';
-	import type { Controller, SerialPort } from './Controller';
+	import type { Controller } from './Controller';
 	import Icon from './Icon.svelte';
 	import PendantState from './PendantState';
 	import { derived, writable } from 'svelte/store';
@@ -50,7 +50,7 @@
 						<option value={p.port} selected={state.connection.port == p.port}>{p.port}</option>
 					{/each}
 				</select>
-				<button class="btn-outline btn-sm btn" on:click={() => model.refresh_serial_list()}
+				<button class="btn-outline btn btn-sm" on:click={() => model.refresh_serial_list()}
 					><Icon icon="refresh" /></button>
 			</label>
 			<label class="block">
@@ -68,17 +68,21 @@
 			</div>
 			<div class="form-control w-full">
 				<label for="reconnect">
-					<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.enable_hardware_flow_control} />
+					<input
+						type="checkbox"
+						id="reconnect"
+						class="toggle"
+						bind:checked={state.connection.enable_hardware_flow_control} />
 					Use Hardware Flow Control</label>
 			</div>
 		</div>
 		<button
-			class="btn-error btn-sm btn justify-end text-left"
+			class="btn btn-error btn-sm justify-end text-left"
 			disabled={$active_port?.port == null}
 			on:click={() => disconnect()}>
 			Disconnect</button>
 		<button
-			class="btn-success btn-sm btn justify-end text-right"
+			class="btn btn-success btn-sm justify-end text-right"
 			disabled={!state.connection.port}
 			on:click={() => connect()}>
 			Connect</button>

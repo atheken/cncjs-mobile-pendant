@@ -8,7 +8,7 @@
 </script>
 
 <div class="status w-full p-1 text-center align-middle text-sm" class:ok={$port} class:disconnected={!$port}>
-	<span class="fa fa-alert" class:fa-bolt={$port} class:fa-triangle-exclamation={!$port} />
+	<span class="fa fa-alert" class:fa-bolt={$port} class:fa-handshake-slash={!$port} />
 	{#if $port}
 		<span class="text-xs">Connected to:</span>
 		<button
