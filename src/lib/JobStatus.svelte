@@ -108,7 +108,7 @@
 					bind:files={$files}
 					class="file-input-bordered file-input file-input-sm w-full max-w-xs" />
 			</div>
-			<button class="btn btn-sm" on:click={() => (load_file_requested = true)}>Browse...</button>
+			<button class="btn-sm btn" on:click={() => (load_file_requested = true)}>Browse...</button>
 		</div>
 		<div class="grid grid-cols-5">
 			<div>Axis</div>
@@ -142,7 +142,7 @@
 			</div>
 		</div>
 
-		<Modal visible={load_file_requested}>
+		<Modal visible={load_file_requested} on:dismiss-requested={()=> load_file_requested = false}>
 			<div slot="heading">Load G-code</div>
 			<div slot="content">
 				<FileBrowser {model} bind:selected_file bind:file_path />
@@ -157,7 +157,7 @@
 				{#if $sender?.holdReason && !$sender.holdReason.err}
 					The job is on hold due to: {$sender?.holdReason?.msg}.
 					{#if $sender.holdReason.data == 'M6'}
-						<button class="btn btn-xs" on:click={() => {}}>Z-Probe</button>
+						<button class="btn-xs btn" on:click={() => {}}>Z-Probe</button>
 					{/if}
 				{:else if $sender.holdReason?.err}
 					<div class="text-error">The job is on hold due to the following error:</div>
@@ -165,7 +165,7 @@
 				{:else}
 					<div class="text-center">Job has been manually paused.</div>
 				{/if}
-				<button class="btn btn-xs text-right" on:click={() => model.start_or_resume_gcode()}>Continue</button>
+				<button class="btn-xs btn text-right" on:click={() => model.start_or_resume_gcode()}>Continue</button>
 			</div>
 		</Modal>
 	</div>

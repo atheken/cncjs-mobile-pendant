@@ -7,6 +7,7 @@
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
 	import Icon from './lib/Icon.svelte';
 	import Status from './Status.svelte';
+	import DebugPanel from './DebugPanel.svelte';
 
 	let controller: Controller;
 	let active_port;
@@ -22,14 +23,14 @@
 			icon: 'play'
 		},
 		{
-			id: 'connection',
-			alt: 'Connection Status',
-			icon: 'bolt'
-		},
-		{
 			id: 'jog',
 			alt: 'Jog Machine',
 			icon: 'gamepad'
+		},
+		{
+			id: 'debug',
+			alt: 'Debug',
+			icon: 'bug'
 		}
 	];
 	let selected_tab_id = 'commands';
@@ -70,16 +71,16 @@
 				<JobStatus model={controller} />
 			{:else if selected_tab_id == 'jog'}
 				<JogControls model={controller} />
-			{:else if selected_tab_id == 'info'}
-				Intentionally blank_object..
+			{:else if selected_tab_id == 'debug'}
+				<DebugPanel model={controller} />
 			{/if}
-			<div class="btm-nav btm-nav-sm ">
+			<div class="btm-nav btm-nav-sm border-t-[1px] border-accent bg-slate-100">
 				{#each tabs as t (t.id)}
 					<button
-						class="bg-primary"
 						on:click={() => (selected_tab_id = t.id)}
 						class:active={t.id == selected_tab_id}
-						class:text-accent={t.id == selected_tab_id}
+						class:bg-accent={t.id == selected_tab_id}
+						class="border-0 text-slate-500"
 						data-tab-selection="t.id"
 						><Icon icon={t.icon} />
 					</button>

@@ -400,11 +400,18 @@ export class Controller {
 				this._active_port.set(f);
 			});
 
+			setInterval(() => {
+				this.write('?');
+				this.write('$$');
+			}, 5000);
+
 			this._socket.on('serialport:change', (f: SerialPort) => {
 				// this code is potentially hazardous, as it is making an assumption that
 				// cncjs is only connected to a single port, which may not be true
 				if (f?.inuse) {
 					this._active_port.set(f);
+					this.write('?');
+					this.write('$');
 				} else {
 					this._active_port.set(null);
 				}

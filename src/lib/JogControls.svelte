@@ -95,9 +95,6 @@
 			{/each}
 		</div>
 	{/if}
-	<Divider>Debug</Divider>
-	<button on:click={() => model.cncjs_command('statusreport')}>Status report</button>
-	<button on:click={() => model.cncjs_command('probe')}>probe</button>
 {:else}
 	<div class="text-md h-screen bg-yellow-50 text-center text-amber-900">
 		<div class="relative top-1/3">
