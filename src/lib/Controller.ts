@@ -5,13 +5,13 @@ import type { ConnectionSettings } from './ConnectionSettings';
 import DirectoryListing from './DirectoryListing';
 import type MachineDeviceInterface from './MachineDeviceInterface';
 
-export class Coordinate {
+export interface Coordinate {
 	X: number;
 	Y: number;
 	Z: number;
 }
 
-export class MachineStatus {
+export interface MachineStatus {
 	work_coordinate: Coordinate;
 	machine_coordinate: Coordinate;
 	loaded_file: string | null;
@@ -24,7 +24,7 @@ export interface SerialPort {
 	inuse: boolean;
 }
 
-export class StartupEvent {
+export interface StartupEvent {
 	loadedcontrollers: string[];
 	baudrates: number[];
 	ports: SerialPort[];
@@ -38,11 +38,11 @@ export interface CommandRecord {
 	commands: string;
 }
 
-export class CommandQueryResult {
-	records: CommandRecord[] = [];
+export interface CommandQueryResult {
+	records: CommandRecord[];
 }
 
-export class SigninResult {
+export interface SigninResult {
 	enabled: boolean;
 	token: string;
 	name: string;
@@ -66,6 +66,7 @@ export interface SenderStatus {
 	holdReason: {
 		data: string;
 		msg: string;
+		err: boolean;
 	};
 	name: string;
 	context: {
@@ -343,8 +344,9 @@ export class Controller {
 				}
 			});
 
-			this._socket.on('serialport:list', (p) => {
-				this.ports.set(p);
+			this._socket.on('serialport:list', (ports: SerialPort[]) => {
+				this.ports.set(ports);
+				this._active_port.set(ports.find((p) => p.inuse));
 			});
 
 			// initialize serial list.
@@ -355,7 +357,6 @@ export class Controller {
 			});
 
 			await this.load_config();
-
 			[
 				'connect_error',
 				'connect_timeout',
@@ -375,7 +376,7 @@ export class Controller {
 				'task:error',
 				'serialport:change',
 				'serialport:error',
-				'serialport:read',
+
 				'serialport:write',
 				'message'
 			].forEach((r) => this._socket.on(r, (p) => console.debug({ name: r, payload: p })));

@@ -24,16 +24,12 @@
 }
 
 .mdl {
-  transition: 0.5s;
-}
-
-.mdl {
   transform: translateY(100%);
-  transition: 0.50s;
+  transition: 1.0s;
 }
 
-.mdl-visible.mdl {
-  transition: 0.50s;
+.mdl.mdl-visible {
+  transition: 1.0s;
   transform: translateY(0%);
 }
 

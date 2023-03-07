@@ -46,7 +46,7 @@
 	});
 </script>
 
-<div class="overflow-hidden overscroll-none">
+<div class="overflow-auto overscroll-none">
 	{#if error}
 		<div class="flex h-full items-center justify-center">
 			<div class="text-center align-middle text-sm text-rose-900">
