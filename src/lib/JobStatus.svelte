@@ -32,14 +32,12 @@
 
 	let time_stats = derived(sender, (s) => {
 		return {
-			remaining: s.remainingTime ? number_to_time(s.remainingTime) : 'N/A',
-			ellapsed: s.elapsedTime ? number_to_time(s.elapsedTime) : 'N/A'
+			remaining: s?.remainingTime ? number_to_time(s.remainingTime) : 'N/A',
+			ellapsed: s?.elapsedTime ? number_to_time(s.elapsedTime) : 'N/A'
 		};
 	});
 
-	let job_dimensions = derived(sender, (s) => {
-		s.context;
-	});
+	let job_dimensions = derived(sender, (s) => s?.context);
 
 	type states = '' | 'idle' | 'hold' | 'working' | 'alarm';
 	let state = derived(controller_state, (c) => c.status.activeState);
@@ -132,8 +130,13 @@
 		<div class="stats w-full bg-slate-50 shadow">
 			<div class="stat">
 				<div class="stat-title">Progress</div>
-				<div class="stat-value">{Math.round(($sender.sent / $sender.total) * 100)}%</div>
-				<div class="stat-desc">Sent {$sender.sent} of {$sender.total}</div>
+				{#if $sender && $sender.total > 0}
+					<div class="stat-value">{Math.round(($sender.sent / $sender.total) * 100)}%</div>
+					<div class="stat-desc">Sent {$sender.sent} of {$sender.total}</div>
+				{:else}
+					<div class="stat-value">N/A</div>
+					<div class="stat-desc">Sent: N/A</div>
+				{/if}
 			</div>
 			<div class="stat">
 				<div class="stat-title">Time Remaining</div>
@@ -142,7 +145,7 @@
 			</div>
 		</div>
 
-		<Modal visible={load_file_requested} on:dismiss-requested={()=> load_file_requested = false}>
+		<Modal visible={load_file_requested} on:dismiss-requested={() => (load_file_requested = false)}>
 			<div slot="heading">Load G-code</div>
 			<div slot="content">
 				<FileBrowser {model} bind:selected_file bind:file_path />
@@ -159,7 +162,7 @@
 					{#if $sender.holdReason.data == 'M6'}
 						<button class="btn-xs btn" on:click={() => {}}>Z-Probe</button>
 					{/if}
-				{:else if $sender.holdReason?.err}
+				{:else if $sender?.holdReason?.err}
 					<div class="text-error">The job is on hold due to the following error:</div>
 					<div class="text-monospace">{$sender.holdReason.msg}</div>
 				{:else}

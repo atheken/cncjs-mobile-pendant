@@ -243,10 +243,12 @@ export class Controller {
 	}
 
 	write(command: string, appendNewline: boolean = false) {
-		let write = appendNewline ? 'writeln' : 'write';
-		this.cncjs_command(write, get(this.active_port).port, command, {
-			_sender_: this._controller_id
-		});
+		if(get(this._active_port)?.port){
+			let write = appendNewline ? 'writeln' : 'write';
+			this.cncjs_command(write, get(this.active_port)?.port, command, {
+				_sender_: this._controller_id
+			});
+		}
 	}
 
 	get commands(): Readable<CommandQueryResult> {
