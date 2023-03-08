@@ -46,3 +46,16 @@
   @apply bg-rose-300;
   @apply text-rose-800;
 }
+
+.nav {
+  @apply flex;
+  @apply grow-0;
+  @apply border-t-[1px] border-accent bg-slate-100;
+  
+}
+
+.nav button {
+  @apply border-0 text-slate-500;
+  @apply p-2;
+  @apply grow;
+}

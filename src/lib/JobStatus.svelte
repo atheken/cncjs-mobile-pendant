@@ -95,7 +95,9 @@
 			</div>
 
 			<div class="h-1/2 overflow-scroll">
-				{JSON.stringify($sender, null, ' ')}
+				<pre>
+					{JSON.stringify($sender, null, ' ')}
+				</pre>
 			</div>
 		</div>
 		<div class="grid grid-cols-2 gap-1 px-1">

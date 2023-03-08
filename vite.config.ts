@@ -16,5 +16,8 @@ export default defineConfig({
 		proxy: {
 			//this will be useful to enable HMR at a later time.
 		}
+	},
+	build: {
+		minify: 'terser'
 	}
 });

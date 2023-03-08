@@ -54,7 +54,7 @@
 		<div class="grid w-full grid-cols-4 gap-2">
 			<div class="col-span-3 grid grid-cols-3 p-1" style:border="1px solid">
 				{#each xyControls as ctl (ctl.id)}
-					<button class="btn-outline btn btn-info btn-sm" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
+					<button class="btn-outline btn-info btn-sm btn" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
 				{/each}
 				<div class="col-span-3 py-2">
 					<input
@@ -75,9 +75,9 @@
 				</div>
 			</div>
 			<div class="grid grid-cols-1 p-1" style:border="1px solid">
-				<div class="btn-group-vertical btn-group">
+				<div class="btn-group btn-group-vertical">
 					{#each zControls as ctl (ctl.id)}
-						<button class="btn-outline btn btn-info btn-sm" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
+						<button class="btn-outline btn-info btn-sm btn" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
 					{/each}
 				</div>
 				<div />
@@ -89,14 +89,14 @@
 		<div class="grid grid-cols-3 justify-items-center">
 			{#each $mdi as m (m.id)}
 				<div class="w-full px-1 py-1 align-middle">
-					<button class="btn btn-sm w-full align-middle" value={m.id} on:click={() => model.execute_mdi(m)}
+					<button class="btn-sm btn w-full align-middle" value={m.id} on:click={() => model.execute_mdi(m)}
 						>{m.name}</button>
 				</div>
 			{/each}
 		</div>
 	{/if}
 {:else}
-	<div class="text-md h-screen bg-yellow-50 text-center text-amber-900">
+	<div class="text-md  h-full bg-yellow-50 text-center text-amber-900">
 		<div class="relative top-1/3">
 			<p>
 				<span class="fa-regular fa-triangle-exclamation text-4xl" />
