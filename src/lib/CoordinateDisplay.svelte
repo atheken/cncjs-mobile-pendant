@@ -5,17 +5,27 @@
 	export let model: Readable<ControllerState>;
 </script>
 
-<div class="grid w-full grid-cols-7 text-center font-mono" style:border="1px solid gray">
-	<div>Axes</div>
-	<div class="col-span-3">Machine</div>
-	<div class="col-span-3">Work</div>
-	<div>X</div>
-	<div class="col-span-3">{$model?.status.mpos.x}</div>
-	<div class="col-span-3">{$model?.status.wpos.x}</div>
-	<div>Y</div>
-	<div class="col-span-3">{$model?.status.mpos.y}</div>
-	<div class="col-span-3">{$model?.status.wpos.y}</div>
-	<div>Z</div>
-	<div class="col-span-3">{$model?.status.mpos.z}</div>
-	<div class="col-span-3">{$model?.status.wpos.z}</div>
-</div>
+<table class="w-full border-[1px] text-center">
+	<thead class="rounded-sm text-center">
+		<th class="text-center">Axes</th>
+		<th>Machine</th>
+		<th>Work</th>
+	</thead>
+	<tbody class="rounded-sm text-center">
+		<tr>
+			<td class="">X</td>
+			<td class="">{$model?.status.mpos.x}</td>
+			<td class="">{$model?.status.wpos.x}</td>
+		</tr>
+		<tr>
+			<td class=" ">Y</td>
+			<td class="">{$model?.status.mpos.y}</td>
+			<td class="">{$model?.status.wpos.y}</td>
+		</tr>
+		<tr>
+			<td class=" ">Z</td>
+			<td class="">{$model?.status.mpos.z}</td>
+			<td class="">{$model?.status.wpos.z}</td>
+		</tr>
+	</tbody>
+</table>

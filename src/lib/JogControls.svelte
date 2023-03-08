@@ -51,8 +51,8 @@
 	<Divider>Jog Machine</Divider>
 	<div class="w-full px-2">
 		<CoordinateDisplay model={model.controller_state} />
-		<div class="grid w-full grid-cols-4 gap-2">
-			<div class="col-span-3 grid grid-cols-3 p-1" style:border="1px solid">
+		<div class="card grid w-full grid-cols-4 gap-2">
+			<div class="col-span-3 grid grid-cols-3 p-1">
 				{#each xyControls as ctl (ctl.id)}
 					<button class="btn-outline btn-info btn-sm btn" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
 				{/each}
@@ -74,7 +74,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="grid grid-cols-1 p-1" style:border="1px solid">
+			<div class="grid grid-cols-1 p-1">
 				<div class="btn-group btn-group-vertical">
 					{#each zControls as ctl (ctl.id)}
 						<button class="btn-outline btn-info btn-sm btn" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>

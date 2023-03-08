@@ -2,14 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.btn {
-  text-transform: none;
-  border-radius: 3px;
-}
-.btn-group {
-  border-radius: 3px;
-}
-
 .zero-xy::before{
   @layer .font-mono;
   @layer .font-thin;
@@ -58,4 +50,17 @@
   @apply border-0 text-slate-500;
   @apply p-2;
   @apply grow;
+}
+
+.btn {
+  @apply rounded-sm;
+}
+
+table,thead,tr,th,td {
+  @apply rounded-lg;
+  @apply border-separate;
+}
+
+thead {
+  @apply bg-slate-200;
 }
