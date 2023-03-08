@@ -8,7 +8,20 @@ export interface Coordinate {
 	z: string;
 }
 
-export default class ControllerInfo {
+export interface WorkflowState {
+	state: 'idle' | 'running';
+}
+
+export interface ControllerSettings {
+	version: string;
+	parameters: any;
+	/**
+	 * An object containing each of the lines produced from a '$$' command.
+	 */
+	settings: object;
+}
+
+export default interface ControllerInfo {
 	port: string;
 
 	baudrate: number;
@@ -17,19 +30,10 @@ export default class ControllerInfo {
 	ready: boolean;
 	controller: {
 		type: 'Grbl' | 'Marlin' | 'Smoothie' | 'TinyG';
-		settings: {
-			version: string;
-			parameters: any;
-			/**
-			 * An object containing each of the lines produced from a '$$' command.
-			 */
-			settings: object;
-		};
+		settings: ControllerSettings;
 		state: ControllerState;
 	};
 	feeder: FeederStatus;
 	sender: SenderStatus;
-	workflow: {
-		state: 'idle' | 'running';
-	};
+	workflow: WorkflowState;
 }

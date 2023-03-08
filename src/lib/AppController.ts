@@ -7,11 +7,12 @@ import type CommandInfo from './models/api/CommandInfo';
 import type SerialPort from './models/api/SerialPort';
 import type SigninResponse from './models/api/SigninResponse';
 import type ListingResponse from './models/api/ListingResponse';
-// impwritable, { type Readable } fromwritable';
 import type ControllerInfo from './models/api/ControllerInfo';
 import { derived, get, writable, type Readable } from 'svelte/store';
 import type SenderStatus from './models/api/SenderStatus';
 import type ControllerState from './models/api/ControllerState';
+import type { ControllerSettings, WorkflowState } from './models/api/ControllerInfo';
+import type FeederStatus from './models/api/FeederStatus';
 
 export class AppController {
 	public static async Initialize(): Promise<AppController> {
@@ -33,18 +34,33 @@ export class AppController {
 	private _ports = writable<SerialPort[]>([]);
 	private _sender_status = writable<SenderStatus>(null);
 	private _controller_state = writable<ControllerState>(null);
+	private _workflow_state = writable<WorkflowState>(null);
+	private _controller_settings = writable<ControllerSettings>(null);
+	private _feeder_status = writable<FeederStatus>(null);
 
 	// private _senderStatus = writable<SenderStatus>(null);
 	// private _controllerState = writable<ControllerState>(null);
 
 	private _controller = derived(
-		[this._controllers, this._active_port, this._sender_status, this._controller_state],
-		([controllers, port, sender, cstate]) => {
+		[
+			this._controllers,
+			this._active_port,
+			this._sender_status,
+			this._controller_state,
+			this._workflow_state,
+			this._controller_settings,
+			this._feeder_status
+		],
+		([controllers, port, sender, cstate, wstate, settings, feeder]) => {
 			if (port) {
 				let current = controllers?.find((c) => c.port == port?.port);
 				if (current) {
-					current.controller.state = cstate;
-					current.sender = sender;
+					//patch the current settings.
+					current.controller.state = cstate || current.controller.state;
+					current.sender = sender || current.sender;
+					current.workflow = wstate || current.workflow;
+					current.controller.settings = settings || current.controller.settings;
+					current.feeder = feeder || current.feeder;
 					return current;
 				}
 			}
@@ -229,17 +245,20 @@ export class AppController {
 
 			//// The following events should be used to update the machine controller:
 
-			//this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
 			//this._socket.on('gcode:load', (name, _) => this._loaded_gcode.set(name));
 			//this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
+
+			this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
 			this._socket.on('sender:status', (s) => this._sender_status.set(s));
 			this._socket.on('controller:state', (_, state) => this._controller_state.set(state));
+			this._socket.on('workflow:state', (s) => this._workflow_state.set(s));
+			this._socket.on('controller:settings', (s) => this._controller_settings.set(s));
 			this._socket.on('serialport:change', async () =>
 				this._controllers.set(await this.request_json('/api/controllers'))
 			);
-
-			//ignored events:
-			['controller:settings', 'workflow:state'];
+			this._socket.on('serialport:open', async () =>
+				this._controllers.set(await this.request_json('/api/controllers'))
+			);
 
 			this.configure_serialport_handling();
 
@@ -256,7 +275,7 @@ export class AppController {
 	 */
 	private configure_update_timers() {
 		//setInterval(() => this.write('?'), 3000);
-		//setInterval(async () => this._controllers.set(await this.request_json('/api/controllers')), 1000);
+		setInterval(async () => this._controllers.set(await this.request_json('/api/controllers')), 1000);
 	}
 
 	/**
