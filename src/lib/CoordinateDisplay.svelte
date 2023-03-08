@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { Readable } from 'svelte/store';
-	import type { ControllerState } from './AppController';
-
-	export let model: Readable<ControllerState>;
+	import { derived, type Readable } from 'svelte/store';
+	import type ControllerInfo from './models/api/ControllerInfo';
+	
+	export let model: Readable<ControllerInfo>;
+	let coords = derived(model, m => m?.controller?.state?.status)
 </script>
 
 <table class="w-full border-[1px] text-center">
@@ -14,18 +15,18 @@
 	<tbody class="rounded-sm text-center">
 		<tr>
 			<td class="">X</td>
-			<td class="">{$model?.status.mpos.x}</td>
-			<td class="">{$model?.status.wpos.x}</td>
+			<td class="">{$coords?.mpos.y}</td>
+			<td class="">{$coords?.wpos.x}</td>
 		</tr>
 		<tr>
 			<td class=" ">Y</td>
-			<td class="">{$model?.status.mpos.y}</td>
-			<td class="">{$model?.status.wpos.y}</td>
+			<td class="">{$coords?.mpos.y}</td>
+			<td class="">{$coords?.wpos.y}</td>
 		</tr>
 		<tr>
 			<td class=" ">Z</td>
-			<td class="">{$model?.status.mpos.z}</td>
-			<td class="">{$model?.status.wpos.z}</td>
+			<td class="">{$coords?.mpos.z}</td>
+			<td class="">{$coords?.wpos.z}</td>
 		</tr>
 	</tbody>
 </table>

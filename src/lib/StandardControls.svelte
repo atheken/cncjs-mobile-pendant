@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { Readable } from 'svelte/store';
-	import type { CommandQueryResult, AppController } from './AppController';
+	import type { AppController } from './AppController';
 	import Divider from './Divider.svelte';
 	import Icon from './Icon.svelte';
 	export let model: AppController;
@@ -48,7 +47,7 @@
 			square: true
 		}
 	];
-	let commands: Readable<CommandQueryResult> = model.commands;
+	let commands = model.commands;
 </script>
 
 <div>
@@ -61,10 +60,10 @@
 			</div>
 		{/each}
 	</div>
-	{#if $commands.records.length > 0}
+	{#if $commands?.records.length > 0}
 		<Divider>Commands</Divider>
 		<div class="grid grid-cols-1 justify-items-center">
-			{#each $commands.records as c (c.id)}
+			{#each $commands?.records as c (c.id)}
 				<div class="w-full px-1 py-1 align-middle">
 					<button
 						class="btn-outline btn btn-sm w-full align-middle"

@@ -5,9 +5,10 @@
 <script lang="ts">
 	import Modal from './Modal.svelte';
 	import type { AppController } from './AppController';
-	import Icon from './Icon.svelte';
+
 	import PendantState from './models/local/PendantState';
-	import { derived, writable } from 'svelte/store';
+	import { writable } from 'svelte/store';
+	import Icon from './Icon.svelte';
 	export let model: AppController;
 
 	let { ports, active_port } = model;
@@ -35,7 +36,6 @@
 		displayPanel.set(false);
 	}
 
-	let disableConnect = derived(model.active_port, (p) => p.port);
 	let rates = [115200, 9600];
 </script>
 

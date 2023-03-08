@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { derived } from 'svelte/store';
 	import type { AppController } from './AppController';
 	import CoordinateDisplay from './CoordinateDisplay.svelte';
 	import Divider from './Divider.svelte';
 	import Icon from './Icon.svelte';
 
 	export let model: AppController;
-	let mdi = model.mdi_commands;
+	let mdi = derived(model.mdi_commands, (f) => f.records);
 
 	class JogCommand {
 		constructor(
@@ -50,7 +51,7 @@
 {#if $active_port}
 	<Divider>Jog Machine</Divider>
 	<div class="w-full px-2">
-		<CoordinateDisplay model={model.controller_state} />
+		<CoordinateDisplay model={model.controller} />
 		<div class="card grid w-full grid-cols-4 gap-2">
 			<div class="col-span-3 grid grid-cols-3 p-1">
 				{#each xyControls as ctl (ctl.id)}

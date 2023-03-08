@@ -1,74 +1,81 @@
 import io from 'socket.io-client';
-import { writable, get, type Readable } from 'svelte/store';
 import { ulid } from 'ulid';
-import type { ConnectionSettings } from './ConnectionSettings';
+import type { ConnectionSettings } from './models/local/ConnectionSettings';
 import DirectoryListing from './models/local/DirectoryListing';
 import type MachineDeviceInterface from './models/api/MachineDeviceInterface';
 import type CommandInfo from './models/api/CommandInfo';
-import type SenderStatus from './models/api/SenderStatus';
 import type SerialPort from './models/api/SerialPort';
 import type SigninResponse from './models/api/SigninResponse';
-
-export interface CommandQueryResult {
-	records: CommandInfo[];
-}
-
-export interface ControllerState {
-	status: {
-		activeState: string;
-		mpos: {
-			x: number;
-			y: number;
-			z: number;
-		};
-		wpos: {
-			x: number;
-			y: number;
-			z: number;
-		};
-		ov: number[];
-		subState: number;
-		wco: {
-			x: string;
-			y: string;
-			z: string;
-		};
-		feedrate: number;
-		spindle: number;
-	};
-	parserstate: {
-		modal: {
-			motion: string;
-			wcs: string;
-			plane: string;
-			units: string;
-			distance: string;
-			feedrate: string;
-			program: string;
-			spindle: string;
-			cooland: string;
-		};
-		tool: string;
-		feedrate: string;
-		spindle: string;
-	};
-}
-
-export interface FeederStatus {
-	hold: boolean;
-	holdReason: string;
-	queue: number;
-	pending: boolean;
-	changed: boolean;
-}
-
-export type ConnectionStatus = 'pending' | 'connected' | 'disconnected' | 'unknown';
+import type ListingResponse from './models/api/ListingResponse';
+// impwritable, { type Readable } fromwritable';
+import type ControllerInfo from './models/api/ControllerInfo';
+import { derived, get, writable, type Readable } from 'svelte/store';
+import type SenderStatus from './models/api/SenderStatus';
+import type ControllerState from './models/api/ControllerState';
 
 export class AppController {
-	private _controllers = writable(null);
+	public static async Initialize(): Promise<AppController> {
+		var c = new AppController();
+		await c.configure();
+		return c;
+	}
 
-	get controllers(): Readable<any> {
-		return this._controllers;
+	private _active_port = writable<SerialPort>(null);
+
+	private _client_id = ulid();
+	private _socket: io.socket;
+	private _token: string;
+
+	private _macros = writable<any[]>();
+	private _commands = writable<ListingResponse<CommandInfo>>({ records: [] });
+	private _mdi_commands = writable<ListingResponse<MachineDeviceInterface>>({ records: [] });
+	private _controllers = writable<ControllerInfo[]>([]);
+	private _ports = writable<SerialPort[]>([]);
+	private _sender_status = writable<SenderStatus>(null);
+	private _controller_state = writable<ControllerState>(null);
+
+	// private _senderStatus = writable<SenderStatus>(null);
+	// private _controllerState = writable<ControllerState>(null);
+
+	private _controller = derived(
+		[this._controllers, this._active_port, this._sender_status, this._controller_state],
+		([controllers, port, sender, cstate]) => {
+			if (port) {
+				let current = controllers?.find((c) => c.port == port?.port);
+				if (current) {
+					current.controller.state = cstate;
+					current.sender = sender;
+					return current;
+				}
+			}
+			return null;
+		}
+	);
+
+	connected_to_server = writable<boolean>(false);
+
+	get active_port(): Readable<SerialPort> {
+		return this._active_port;
+	}
+
+	get ports(): Readable<SerialPort[]> {
+		return this._ports;
+	}
+
+	async get_state(key: string = ''): Promise<any> {
+		return await this.request_json('/api/state?' + new URLSearchParams({ key }));
+	}
+
+	start_or_resume_gcode() {
+		let onhold = get(this._controller)?.sender?.hold;
+		let port = get(this._active_port)?.port;
+		if (port) {
+			if (onhold) {
+				this.cncjs_command('command', port, 'gcode:resume');
+			} else {
+				this.cncjs_command('command', port, 'gcode:start');
+			}
+		}
 	}
 
 	jog(x: number, y: number, z: number, multiplier: number, mode: 'relative' | 'absolute') {
@@ -87,72 +94,28 @@ export class AppController {
 		}
 	}
 
-	public static async Initialize(): Promise<AppController> {
-		var c = new AppController();
-		await c.configure();
-		return c;
-	}
-
-	private _connection_status = writable<ConnectionStatus>('unknown');
-	private _active_port = writable<SerialPort>(null);
-
-	private _controller_id = ulid();
-	private _socket: io.socket;
-	private _token: string;
-	private _macros = writable<any[]>();
-
-	private _controller_state = writable<ControllerState>();
-	private _sender_status = writable<SenderStatus>();
-	private _feeder_status = writable<FeederStatus>();
-	private _commands = writable<CommandQueryResult>();
-	private _mdi_commands = writable<MachineDeviceInterface[]>();
-
-	ports = writable<SerialPort[]>([]);
-
-	get active_port(): Readable<SerialPort> {
-		return this._active_port;
-	}
-
-	get connection_status(): Readable<ConnectionStatus> {
-		return this._connection_status;
-	}
-
-	connected_to_server = writable<boolean>(false);
-
-	async get_state(key: string = ''): Promise<any> {
-		return await this.request_json('/api/state?' + new URLSearchParams({ key }));
-	}
-
-	start_or_resume_gcode() {
-		// if (get(this.controller_state) == 'paused') {
-		// 	this.cncjs_command('command', this.port_path, 'gcode:resume');
-		// } else {
-		// 	this.cncjs_command('command', this.port_path, 'gcode:start');
-		// }
-	}
-
 	pause_gcode() {
-		this.cncjs_command('command', this.port_path, 'gcode:pause');
+		this.cncjs_command('command', get(this._active_port)?.port, 'gcode:pause');
 	}
 
 	unload_gcode() {
-		this.cncjs_command('command', this.port_path, 'gcode:unload');
+		this.cncjs_command('command', get(this._active_port)?.port, 'gcode:unload');
 	}
 
 	stop_gcode() {
-		this.cncjs_command('command', this.port_path, 'gcode:stop', { force: true });
+		this.cncjs_command('command', get(this._active_port)?.port, 'gcode:stop', { force: true });
 	}
 
 	load_gcode(file: string, contents: string = null) {
 		if (contents != null) {
-			this.cncjs_command('command', this.port_path, 'gcode:load', file, contents);
+			this.cncjs_command('command', get(this._active_port)?.port, 'gcode:load', file, contents);
 		} else {
-			this.cncjs_command('command', this.port_path, 'watchdir:load', file);
+			this.cncjs_command('command', get(this._active_port)?.port, 'watchdir:load', file);
 		}
 	}
 
 	close_connection(): any {
-		this.cncjs_command('close', get(this.active_port)?.port);
+		this.cncjs_command('close', get(this._active_port)?.port);
 	}
 	open_connection(settings: ConnectionSettings) {
 		this.cncjs_command('open', settings.port, {
@@ -166,20 +129,11 @@ export class AppController {
 		this.cncjs_command('list');
 	}
 
-	write(command: string, appendNewline: boolean = false) {
-		if (get(this._active_port)?.port) {
-			let write = appendNewline ? 'writeln' : 'write';
-			this.cncjs_command(write, get(this.active_port)?.port, command, {
-				_sender_: this._controller_id
-			});
-		}
-	}
-
-	get commands(): Readable<CommandQueryResult> {
+	get commands(): Readable<ListingResponse<CommandInfo>> {
 		return this._commands;
 	}
 
-	get mdi_commands(): Readable<MachineDeviceInterface[]> {
+	get mdi_commands(): Readable<ListingResponse<MachineDeviceInterface>> {
 		return this._mdi_commands;
 	}
 
@@ -187,24 +141,34 @@ export class AppController {
 		return this._macros;
 	}
 
+	//#region commands
+	write(command: string, appendNewline: boolean = false) {
+		if (get(this._active_port)?.port) {
+			let write = appendNewline ? 'writeln' : 'write';
+			this.cncjs_command(write, get(this._active_port)?.port, command, {
+				_sender_: this._client_id
+			});
+		}
+	}
+
 	home() {
-		this.cncjs_command('command', this.port_path, 'homing');
+		this.cncjs_command('command', get(this._active_port)?.port, 'homing');
 	}
 
 	feedhold() {
-		this.cncjs_command('feedhold', this.port_path, 'feedhold');
+		this.cncjs_command('feedhold', get(this._active_port)?.port, 'feedhold');
 	}
 
 	unlock() {
-		this.cncjs_command('command', this.port_path, 'unlock');
+		this.cncjs_command('command', get(this._active_port)?.port, 'unlock');
 	}
 
 	reset() {
-		this.cncjs_command('command', this.port_path, 'reset');
+		this.cncjs_command('command', get(this._active_port)?.port, 'reset');
 	}
 
 	sleep() {
-		this.cncjs_command('command', this.port_path, 'sleep');
+		this.cncjs_command('command', get(this._active_port)?.port, 'sleep');
 	}
 
 	cncjs_command(command, ...params: any[]) {
@@ -212,7 +176,7 @@ export class AppController {
 	}
 
 	cycle_start() {
-		this.cncjs_command('command', this.port_path, 'cyclestart');
+		this.cncjs_command('command', get(this._active_port)?.port, 'cyclestart');
 	}
 
 	async execute_command(record: CommandInfo) {
@@ -220,8 +184,10 @@ export class AppController {
 	}
 
 	execute_mdi(record: MachineDeviceInterface) {
-		this.cncjs_command('command', this.port_path, 'gcode', record.command);
+		this.cncjs_command('command', get(this._active_port)?.port, 'gcode', record.command);
 	}
+
+	//#endregion
 
 	async list_files(path: string = ''): Promise<DirectoryListing> {
 		var result = await this.request_json('/api/watch/files', 'POST', {
@@ -231,44 +197,20 @@ export class AppController {
 		return retval;
 	}
 
-	get sender_status(): Readable<SenderStatus> {
-		return this._sender_status;
-	}
-
-	get controller_state(): Readable<ControllerState> {
-		return this._controller_state;
-	}
-
-	private constructor() {
-		// the object should be called with "configure()" before use. Use "Initialize" to construct one.
-	}
-
-	public get feeder_status(): Readable<FeederStatus> {
-		return this._feeder_status;
+	get controller(): Readable<ControllerInfo> {
+		return this._controller;
 	}
 
 	private async configure() {
 		try {
-			let token = null;
-			let cnc = JSON.parse(localStorage.getItem('cnc') || '{}');
-			token ||= cnc?.state?.session?.token;
-			if (!token) {
-				let result = (await (await fetch('/api/signin', { method: 'POST' })).json()) as SigninResponse;
-				token = result.token;
-			}
+			await this.load_token();
 
-			this._token = token;
+			this.configure_socketio();
 
-			this._socket = new io({
-				autoConnect: false,
-				query: {
-					token
-				}
-			});
-
-			this._socket.on('serialport:list', (ports: SerialPort[]) => {
-				this.ports.set(ports);
+			this._socket.on('serialport:list', async (ports: SerialPort[]) => {
+				this._ports.set(ports);
 				this._active_port.set(ports.find((p) => p.inuse));
+				this._controllers.set(await this.request_json('/api/controllers'));
 			});
 
 			// initialize serial list.
@@ -279,76 +221,29 @@ export class AppController {
 			});
 
 			await this.load_config();
-			[
-				'connect_error',
-				'connect_timeout',
-				'error',
-				'disconnect',
-				'reconnect',
-				'reconnect_attempt',
-				'reconnecting',
-				'reconnect_error',
-				'reconnect_failed'
-			].forEach((f) => this._socket.on(f, () => this.connected_to_server.set(false)));
 
 			// listen for generic events so that this will handle them.
-			[
-				'task:start',
-				'task:finish',
-				'task:error',
-				'serialport:change',
-				'serialport:error',
+			['task:start', 'task:finish', 'task:error', 'serialport:error', 'serialport:write', 'message'].forEach((r) =>
+				this._socket.on(r, (p) => console.debug({ name: r, payload: p }))
+			);
 
-				'serialport:write',
-				'message'
-			].forEach((r) => this._socket.on(r, (p) => console.debug({ name: r, payload: p })));
+			//// The following events should be used to update the machine controller:
 
-			this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
-
+			//this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
 			//this._socket.on('gcode:load', (name, _) => this._loaded_gcode.set(name));
 			//this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
+			this._socket.on('sender:status', (s) => this._sender_status.set(s));
+			this._socket.on('controller:state', (_, state) => this._controller_state.set(state));
+			this._socket.on('serialport:change', async () =>
+				this._controllers.set(await this.request_json('/api/controllers'))
+			);
 
 			//ignored events:
 			['controller:settings', 'workflow:state'];
 
-			this._socket.on('message', (m) => {
-				console.debug(m);
-			});
+			this.configure_serialport_handling();
 
-			this._socket.on('connect', () => this.connected_to_server.set(true));
-
-			this._socket.on('sender:status', (s) => this._sender_status.set(s));
-
-			this._socket.on('serialport:open', (f) => {
-				this._active_port.set(f);
-			});
-
-			setInterval(() => this.write('?'), 5000);
-
-			setInterval(async () => this._controllers.set(await this.request_json('/api/controllers')), 5000);
-
-			this._socket.on('serialport:change', (f: SerialPort) => {
-				// this code is potentially hazardous, as it is making an assumption that
-				// cncjs is only connected to a single port, which may not be true
-				if (f?.inuse) {
-					this._active_port.set(f);
-					this.write('?');
-					this.write('$');
-				} else {
-					this._active_port.set(null);
-				}
-			});
-
-			this._socket.on('serialport:error', (f) => {
-				//this._active_port.set(f);
-			});
-
-			this._socket.on('controller:state', (_, g) => this._controller_state.set(g));
-
-			this._socket.on('serialport:close', () => {
-				this._active_port.set(null);
-				this.refresh_serial_list();
-			});
+			this.configure_update_timers();
 
 			this._socket.connect();
 		} catch (err) {
@@ -356,27 +251,121 @@ export class AppController {
 		}
 	}
 
-	private get port_path(): string {
-		return get(this.active_port)?.port;
+	/**
+	 * Periodically polls for updated informationf from the server.
+	 */
+	private configure_update_timers() {
+		//setInterval(() => this.write('?'), 3000);
+		//setInterval(async () => this._controllers.set(await this.request_json('/api/controllers')), 1000);
 	}
 
+	/**
+	 * Load the Commands, MDI, and Macros from the API.
+	 */
 	private async load_config() {
 		this._commands.set(await this.request_json(`/api/commands?${new URLSearchParams({ pagination: 'false' })}`));
-		this._mdi_commands.set((await this.request_json('/api/mdi')).records);
-		this._macros.set((await this.request_json('/api/macros')).records);
+		this._mdi_commands.set(await this.request_json('/api/mdi'));
+		this._macros.set(await this.request_json('/api/macros'));
 	}
 
-	private async request_json(
+	/**
+	 * A helper method for getting content from the API.
+	 * @param url The Api to call.
+	 * @param method The http method to use.
+	 * @param options Request options, per the standard Fetch API.
+	 * @returns
+	 */
+	private async request_json<T>(
 		url: string | RequestInfo,
 		method: 'GET' | 'POST' = 'GET',
 		options: RequestInit = {}
-	): Promise<any> {
+	): Promise<T> {
 		let h = new Headers();
 		h.set('Authorization', `Bearer ${this._token}`);
 		h.set('Content-Type', 'application/json');
 		options.headers = h;
 		options.method = method;
 
-		return await (await fetch(url, options)).json();
+		return (await (await fetch(url, options)).json()) as T;
+	}
+
+	/**
+	 * Loads the token from the local storage context. If it's not set,
+	 * the app automatically handles redirects to a signin page.
+	 */
+	private async load_token() {
+		let token = null;
+		let cnc = JSON.parse(localStorage.getItem('cnc') || '{}');
+		token ||= cnc?.state?.session?.token;
+		if (!token) {
+			let result = (await (await fetch('/api/signin', { method: 'POST' })).json()) as SigninResponse;
+			token = result.token;
+		}
+
+		this._token = token;
+	}
+
+	/** Configures socket.io and will set a connection status that can be monitored by the UI. */
+	private configure_socketio() {
+		this._socket = new io({
+			autoConnect: false,
+			query: {
+				token: this._token
+			}
+		});
+
+		// set the overall socket status to connected.
+		this._socket.on('connect', () => this.connected_to_server.set(true));
+
+		//TODO: configure listening for disconnects/reconnects, etc.
+
+		[
+			'connect_error',
+			'connect_timeout',
+			'error',
+			'disconnect',
+			'reconnect',
+			'reconnect_attempt',
+			'reconnecting',
+			'reconnect_error',
+			'reconnect_failed'
+		].forEach((f) => this._socket.on(f, () => this.connected_to_server.set(false)));
+	}
+
+	/** Configures serial ports event handling. */
+	private configure_serialport_handling() {
+		this._socket.on('serialport:open', (f) => {
+			this._active_port.set(f);
+		});
+
+		this._socket.on('serialport:change', (f: SerialPort) => {
+			// this code is potentially hazardous, as it is making an assumption that
+			// cncjs is only connected to a single port, which may not be true
+			if (f?.inuse) {
+				this._active_port.set(f);
+				// this.write('?');
+				// this.write('$');
+			} else {
+				this._active_port.set(null);
+			}
+		});
+
+		this._socket.on('serialport:error', (f) => {
+			//this._active_port.set(f);
+		});
+
+		//this._socket.on('controller:state', (_, g) => this._controller_state.set(g));
+
+		this._socket.on('serialport:close', () => {
+			this._active_port.set(null);
+			this.refresh_serial_list();
+		});
+	}
+
+	/**
+	 * Private, because this object must be configured asyncronously.
+	 */
+	private constructor() {
+		// the object should be called with "configure()" before use. Use "Initialize" to construct one.
 	}
 }

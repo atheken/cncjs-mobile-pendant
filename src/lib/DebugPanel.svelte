@@ -4,7 +4,7 @@
 
 	export let model: AppController;
 
-	let controllers = model.controllers;
+	let controller = model.controller;
 </script>
 
 <div>
@@ -13,6 +13,9 @@
 		<button class="btn btn-sm basis-[45%]" on:click={() => model.cncjs_command('statusreport')}>Status report</button>
 		<button class="btn btn-sm basis-[45%]" on:click={() => model.cncjs_command('probe')}>probe</button>
 	</div>
-	<Divider>Controllers:</Divider>
-	<pre>{JSON.stringify($controllers, null, ' ')}</pre>
+	{#key $controller}
+		<Divider>Controllers:</Divider>
+		<div class="text-center text-xs text-slate-700">Updated: {new Date()}</div>
+		<pre>{JSON.stringify($controller, null, ' ')}</pre>
+	{/key}
 </div>
