@@ -29,25 +29,27 @@
 <div>
 	<div class="breadcrumbs text-sm">
 		<ul>
-			<li><a class="link" on:click={() => set_path('')}><Icon icon="home" /></a></li>
-			{#if file_path != ''}
-				{#each file_path.split('/') as s, i}
-					<li>
-						<Icon icon="folder-open" />&nbsp;
-						<a
-							class="link"
-							on:click={() =>
-								set_path(
-									file_path
-										.split('/')
-										.slice(0, i + 1)
-										.join('/')
-								)}
-							>{s}
-						</a>
-					</li>
-				{/each}
-			{/if}
+			<li><button class="link" on:click={() => set_path('')}><Icon icon="home" /></button></li>
+			<li>
+				{#if file_path != ''}
+					{#each file_path.split('/') as s, i}
+						<li>
+							<Icon icon="folder-open" />&nbsp;
+							<button
+								class="link"
+								on:click={() =>
+									set_path(
+										file_path
+											.split('/')
+											.slice(0, i + 1)
+											.join('/')
+									)}
+								>{s}
+							</button>
+						</li>
+					{/each}
+				{/if}
+			</li>
 		</ul>
 	</div>
 	{#key invalidator}

@@ -161,6 +161,8 @@ export interface FeederStatus {
 	changed: boolean;
 }
 
+export type ConnectionStatus = 'pending' | 'connected' | 'disconnected' | 'unknown';
+
 export class Controller {
 	jog(x: number, y: number, z: number, multiplier: number, mode: 'relative' | 'absolute') {
 		let location = x != null ? `X${x * multiplier} ` : '';
@@ -170,7 +172,11 @@ export class Controller {
 		if (mode == 'absolute') {
 			this.write(`G0 ${location} `);
 		} else {
-			this.write(`G91 ; G0 ${location}; G90 ; `);
+			//this seems like it could lead to a race condition,
+			// but this is how it's done in the main cncjs.
+			this.write('G91');
+			this.write(`G0 ${location}`);
+			this.write('G90');
 		}
 	}
 
@@ -180,24 +186,36 @@ export class Controller {
 		return c;
 	}
 
+	private _connection_status = writable<ConnectionStatus>('unknown');
+	private _active_port = writable<SerialPort>(null);
+
 	private _controller_id = ulid();
 	private _socket: io.socket;
 	private _token: string;
-	private _feeder_status = writable<FeederStatus>();
 	private _macros = writable<any[]>();
-	private _loaded_gcode = writable<string>();
-	private _grbl_state = writable<ControllerState>();
+
+	private _controller_state = writable<ControllerState>();
 	private _sender_status = writable<SenderStatus>();
+	private _feeder_status = writable<FeederStatus>();
 	private _commands = writable<CommandQueryResult>();
 	private _mdi_commands = writable<MachineDeviceInterface[]>();
-	private _active_port = writable<SerialPort>(null);
 
 	ports = writable<SerialPort[]>([]);
+
 	get active_port(): Readable<SerialPort> {
 		return this._active_port;
 	}
+
+	get connection_status(): Readable<ConnectionStatus> {
+		return this._connection_status;
+	}
+
 	connected_to_server = writable<boolean>(false);
 	workflow_state: WorkflowState;
+
+	async get_state(key: string = ''): Promise<any> {
+		return await this.request_json('/api/state?' + new URLSearchParams({ key }));
+	}
 
 	start_or_resume_gcode() {
 		if (get(this.workflow_state.status) == 'paused') {
@@ -312,11 +330,7 @@ export class Controller {
 	}
 
 	get controller_state(): Readable<ControllerState> {
-		return this._grbl_state;
-	}
-
-	get loaded_gcode(): Readable<string> {
-		return this._loaded_gcode;
+		return this._controller_state;
 	}
 
 	private constructor() {
@@ -384,8 +398,9 @@ export class Controller {
 			].forEach((r) => this._socket.on(r, (p) => console.debug({ name: r, payload: p })));
 
 			this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
-			this._socket.on('gcode:load', (name, _) => this._loaded_gcode.set(name));
-			this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
+
+			//this._socket.on('gcode:load', (name, _) => this._loaded_gcode.set(name));
+			//this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
 
 			//ignored events:
 			['controller:settings'];
@@ -402,11 +417,7 @@ export class Controller {
 				this._active_port.set(f);
 			});
 
-			setInterval(() => {
-				// Query the cnc status every 5s.
-				this.write('?');
-				//
-			}, 5000);
+			setInterval(() => this.write('?'), 5000);
 
 			this._socket.on('serialport:change', (f: SerialPort) => {
 				// this code is potentially hazardous, as it is making an assumption that
@@ -424,7 +435,7 @@ export class Controller {
 				//this._active_port.set(f);
 			});
 
-			this._socket.on('controller:state', (_, g) => this._grbl_state.set(g));
+			this._socket.on('controller:state', (_, g) => this._controller_state.set(g));
 
 			this._socket.on('serialport:close', () => {
 				this._active_port.set(null);

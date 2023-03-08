@@ -7,7 +7,7 @@
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
 	import Icon from './lib/Icon.svelte';
 	import Status from './Status.svelte';
-	import DebugPanel from './DebugPanel.svelte';
+	import DebugPanel from './lib/DebugPanel.svelte';
 	import ErrorPage from './lib/ErrorPage.svelte';
 
 	let controller: Controller;

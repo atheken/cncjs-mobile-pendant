@@ -84,7 +84,6 @@
 		<button
 			class="btn btn-success btn-sm justify-end text-right"
 			disabled={!state.connection.port}
-			on:click={() => connect()}>
-			Connect</button>
+			on:click={() => connect()}></button>
 	</div>
 </Modal>
