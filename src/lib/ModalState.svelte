@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Controller } from './lib/Controller';
-	let model: Controller;
+	import type { AppController } from './AppController';
+	let model: AppController;
 	let sender = model.sender_status;
 	let feeder = model.feeder_status;
 </script>

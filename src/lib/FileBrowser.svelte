@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { derived } from 'svelte/store';
-	import type { Controller } from './Controller';
-	import type { DirectoryEntry } from './DirectoryListing';
+	import type { AppController } from './AppController';
+	import type { DirectoryEntry } from './models/local/DirectoryListing';
 	import Icon from './Icon.svelte';
 
-	export let model: Controller;
+	export let model: AppController;
 	export let file_path: string;
 
 	export let selected_file: DirectoryEntry = null;

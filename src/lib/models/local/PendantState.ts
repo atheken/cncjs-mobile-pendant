@@ -1,4 +1,4 @@
-import { ConnectionSettings } from './ConnectionSettings';
+import { ConnectionSettings } from '../../ConnectionSettings';
 
 export default class PendantState {
 	private static _instance: PendantState;

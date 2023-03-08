@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { Controller } from './Controller';
+	import type { AppController } from './AppController';
 	import CoordinateDisplay from './CoordinateDisplay.svelte';
 	import Divider from './Divider.svelte';
 	import Icon from './Icon.svelte';
 
-	export let model: Controller;
+	export let model: AppController;
 	let mdi = model.mdi_commands;
 
 	class JogCommand {
@@ -54,7 +54,7 @@
 		<div class="card grid w-full grid-cols-4 gap-2">
 			<div class="col-span-3 grid grid-cols-3 p-1">
 				{#each xyControls as ctl (ctl.id)}
-					<button class="btn-outline btn-info btn-sm btn" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
+					<button class="btn-outline btn btn-info btn-sm" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
 				{/each}
 				<div class="col-span-3 py-2">
 					<input
@@ -77,7 +77,7 @@
 			<div class="grid grid-cols-1 p-1">
 				<div class="btn-group btn-group-vertical">
 					{#each zControls as ctl (ctl.id)}
-						<button class="btn-outline btn-info btn-sm btn" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
+						<button class="btn-outline btn btn-info btn-sm" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
 					{/each}
 				</div>
 				<div />
@@ -89,7 +89,7 @@
 		<div class="grid grid-cols-3 justify-items-center">
 			{#each $mdi as m (m.id)}
 				<div class="w-full px-1 py-1 align-middle">
-					<button class="btn-sm btn w-full align-middle" value={m.id} on:click={() => model.execute_mdi(m)}
+					<button class="btn btn-sm w-full align-middle" value={m.id} on:click={() => model.execute_mdi(m)}
 						>{m.name}</button>
 				</div>
 			{/each}

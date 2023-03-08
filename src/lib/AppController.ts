@@ -2,114 +2,15 @@ import io from 'socket.io-client';
 import { writable, get, type Readable } from 'svelte/store';
 import { ulid } from 'ulid';
 import type { ConnectionSettings } from './ConnectionSettings';
-import DirectoryListing from './DirectoryListing';
-import type MachineDeviceInterface from './MachineDeviceInterface';
-
-export interface Coordinate {
-	X: number;
-	Y: number;
-	Z: number;
-}
-
-export interface MachineStatus {
-	work_coordinate: Coordinate;
-	machine_coordinate: Coordinate;
-	loaded_file: string | null;
-	grbl_status: string | null;
-}
-
-export interface SerialPort {
-	port: string;
-	manufacturer: string;
-	inuse: boolean;
-}
-
-export interface StartupEvent {
-	loadedcontrollers: string[];
-	baudrates: number[];
-	ports: SerialPort[];
-}
-
-export interface CommandRecord {
-	id: string;
-	mtime: number;
-	enabled: boolean;
-	title: string;
-	commands: string;
-}
+import DirectoryListing from './models/local/DirectoryListing';
+import type MachineDeviceInterface from './models/api/MachineDeviceInterface';
+import type CommandInfo from './models/api/CommandInfo';
+import type SenderStatus from './models/api/SenderStatus';
+import type SerialPort from './models/api/SerialPort';
+import type SigninResponse from './models/api/SigninResponse';
 
 export interface CommandQueryResult {
-	records: CommandRecord[];
-}
-
-export interface SigninResult {
-	enabled: boolean;
-	token: string;
-	name: string;
-}
-
-export class WorkflowState {
-	socket: io.socket;
-	status = writable('unknown');
-
-	constructor(socket: io.socket) {
-		this.socket = socket;
-		this.socket?.on('workflow:state', (f) => {
-			this.status.set(f);
-		});
-	}
-}
-
-export interface SenderStatus {
-	sp: number;
-	hold: boolean;
-	holdReason: {
-		data: string;
-		msg: string;
-		err: boolean;
-	};
-	name: string;
-	context: {
-		global: any;
-		xmin: number;
-		xmax: number;
-		ymin: number;
-		ymax: number;
-		zmin: number;
-		zmax: number;
-		mposx: number;
-		mposy: number;
-		mposz: number;
-		mposa: number;
-		mposb: number;
-		mposc: number;
-		posx: number;
-		posy: number;
-		posz: number;
-		posa: number;
-		posb: number;
-		posc: number;
-		modal: {
-			motion: string;
-			wcs: string;
-			plane: string;
-			units: string;
-			distance: string;
-			feedrate: string;
-			spindle: string;
-			coolant: string;
-		};
-		tool: number;
-		params: object;
-	};
-	size: number;
-	total: number;
-	sent: number;
-	received: number;
-	startTime: number;
-	finishTime: number;
-	elapsedTime: number;
-	remainingTime: number;
+	records: CommandInfo[];
 }
 
 export interface ControllerState {
@@ -163,7 +64,13 @@ export interface FeederStatus {
 
 export type ConnectionStatus = 'pending' | 'connected' | 'disconnected' | 'unknown';
 
-export class Controller {
+export class AppController {
+	private _controllers = writable(null);
+
+	get controllers(): Readable<any> {
+		return this._controllers;
+	}
+
 	jog(x: number, y: number, z: number, multiplier: number, mode: 'relative' | 'absolute') {
 		let location = x != null ? `X${x * multiplier} ` : '';
 		location += y != null ? `Y${y * multiplier} ` : '';
@@ -180,8 +87,8 @@ export class Controller {
 		}
 	}
 
-	public static async Initialize(): Promise<Controller> {
-		var c = new Controller();
+	public static async Initialize(): Promise<AppController> {
+		var c = new AppController();
 		await c.configure();
 		return c;
 	}
@@ -211,18 +118,17 @@ export class Controller {
 	}
 
 	connected_to_server = writable<boolean>(false);
-	workflow_state: WorkflowState;
 
 	async get_state(key: string = ''): Promise<any> {
 		return await this.request_json('/api/state?' + new URLSearchParams({ key }));
 	}
 
 	start_or_resume_gcode() {
-		if (get(this.workflow_state.status) == 'paused') {
-			this.cncjs_command('command', this.port_path, 'gcode:resume');
-		} else {
-			this.cncjs_command('command', this.port_path, 'gcode:start');
-		}
+		// if (get(this.controller_state) == 'paused') {
+		// 	this.cncjs_command('command', this.port_path, 'gcode:resume');
+		// } else {
+		// 	this.cncjs_command('command', this.port_path, 'gcode:start');
+		// }
 	}
 
 	pause_gcode() {
@@ -309,7 +215,7 @@ export class Controller {
 		this.cncjs_command('command', this.port_path, 'cyclestart');
 	}
 
-	async execute_command(record: CommandRecord) {
+	async execute_command(record: CommandInfo) {
 		await this.request_json(`/api/commands/run/${record.id}`, 'POST');
 	}
 
@@ -347,7 +253,7 @@ export class Controller {
 			let cnc = JSON.parse(localStorage.getItem('cnc') || '{}');
 			token ||= cnc?.state?.session?.token;
 			if (!token) {
-				let result = (await (await fetch('/api/signin', { method: 'POST' })).json()) as SigninResult;
+				let result = (await (await fetch('/api/signin', { method: 'POST' })).json()) as SigninResponse;
 				token = result.token;
 			}
 
@@ -403,7 +309,7 @@ export class Controller {
 			//this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
 
 			//ignored events:
-			['controller:settings'];
+			['controller:settings', 'workflow:state'];
 
 			this._socket.on('message', (m) => {
 				console.debug(m);
@@ -418,6 +324,8 @@ export class Controller {
 			});
 
 			setInterval(() => this.write('?'), 5000);
+
+			setInterval(async () => this._controllers.set(await this.request_json('/api/controllers')), 5000);
 
 			this._socket.on('serialport:change', (f: SerialPort) => {
 				// this code is potentially hazardous, as it is making an assumption that
@@ -441,8 +349,6 @@ export class Controller {
 				this._active_port.set(null);
 				this.refresh_serial_list();
 			});
-
-			this.workflow_state = new WorkflowState(this._socket);
 
 			this._socket.connect();
 		} catch (err) {

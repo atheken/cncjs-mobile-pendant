@@ -4,11 +4,11 @@
 
 <script lang="ts">
 	import Modal from './Modal.svelte';
-	import type { Controller } from './Controller';
+	import type { AppController } from './AppController';
 	import Icon from './Icon.svelte';
-	import PendantState from './PendantState';
+	import PendantState from './models/local/PendantState';
 	import { derived, writable } from 'svelte/store';
-	export let model: Controller;
+	export let model: AppController;
 
 	let { ports, active_port } = model;
 
@@ -84,6 +84,6 @@
 		<button
 			class="btn btn-success btn-sm justify-end text-right"
 			disabled={!state.connection.port}
-			on:click={() => connect()}></button>
+			on:click={() => connect()}>Connect</button>
 	</div>
 </Modal>

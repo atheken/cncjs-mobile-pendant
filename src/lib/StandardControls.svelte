@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Readable } from 'svelte/store';
-	import type { CommandQueryResult, CommandRecord, Controller } from './Controller';
+	import type { CommandQueryResult, AppController } from './AppController';
 	import Divider from './Divider.svelte';
 	import Icon from './Icon.svelte';
-	export let model: Controller;
+	export let model: AppController;
 
 	let primary_commands = [
 		{
@@ -36,7 +36,7 @@
 			classes: ['grow bg-green-400 border-green-500 col-span-2'],
 			name: 'Cycle Start',
 			icon: 'circle-play',
-			width: 2,
+			width: 1,
 			square: true
 		},
 		{
@@ -44,7 +44,7 @@
 			name: 'Feedhold',
 			classes: ['bg-rose-400 border-rose-800 text-rose-900 col-span-2'],
 			icon: 'circle-stop',
-			width: 2,
+			width: 3,
 			square: true
 		}
 	];
@@ -56,7 +56,7 @@
 	<div class="grid grid-cols-4 justify-items-center">
 		{#each primary_commands as p}
 			<div class="h-full w-full px-1 py-1 align-middle col-span-{p.width || 1}" class:aspect-video={p.square}>
-				<button class="btn-sm btn h-full w-full align-middle {p.classes?.join(' ')}" on:click={p.click}
+				<button class="btn btn-sm h-full w-full align-middle {p.classes?.join(' ')}" on:click={p.click}
 					><Icon icon={p.icon} />&nbsp;{p.name}</button>
 			</div>
 		{/each}
@@ -67,7 +67,7 @@
 			{#each $commands.records as c (c.id)}
 				<div class="w-full px-1 py-1 align-middle">
 					<button
-						class="btn-outline btn-sm btn w-full align-middle"
+						class="btn-outline btn btn-sm w-full align-middle"
 						value={c.id}
 						disabled={!c.enabled}
 						on:click={() => model.execute_command(c)}>

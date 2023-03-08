@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Readable } from 'svelte/store';
-	import type { ControllerState } from './Controller';
+	import type { ControllerState } from './AppController';
 
 	export let model: Readable<ControllerState>;
 </script>

@@ -1,8 +1,10 @@
 <script lang="ts">
-	import type { Controller } from './Controller';
+	import type { AppController } from './AppController';
 	import Divider from './Divider.svelte';
 
-	export let model: Controller;
+	export let model: AppController;
+
+	let controllers = model.controllers;
 </script>
 
 <div>
@@ -11,8 +13,6 @@
 		<button class="btn btn-sm basis-[45%]" on:click={() => model.cncjs_command('statusreport')}>Status report</button>
 		<button class="btn btn-sm basis-[45%]" on:click={() => model.cncjs_command('probe')}>probe</button>
 	</div>
-	<Divider>CNC.js State:</Divider>
-	{#await model.get_state('') then state}
-		<pre>{JSON.stringify(state, null, ' ')}</pre>
-	{/await}
+	<Divider>Controllers:</Divider>
+	<pre>{JSON.stringify($controllers, null, ' ')}</pre>
 </div>

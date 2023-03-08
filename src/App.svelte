@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { Controller } from './lib/Controller';
+	import { AppController } from './lib/AppController';
 	import StandardControls from './lib/StandardControls.svelte';
 	import JogControls from './lib/JogControls.svelte';
 	import JobStatus from './lib/JobStatus.svelte';
 	import { onMount } from 'svelte';
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
 	import Icon from './lib/Icon.svelte';
-	import Status from './Status.svelte';
+	import Status from './lib/Status.svelte';
 	import DebugPanel from './lib/DebugPanel.svelte';
 	import ErrorPage from './lib/ErrorPage.svelte';
 
-	let controller: Controller;
+	let controller: AppController;
 	let active_port;
 	let tabs = [
 		{
@@ -39,7 +39,7 @@
 
 	onMount(async () => {
 		try {
-			controller = await Controller.Initialize();
+			controller = await AppController.Initialize();
 			active_port = controller.active_port;
 		} catch (err) {
 			error = err;

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { derived, writable } from 'svelte/store';
-	import type { Controller } from './Controller';
-	import type { DirectoryEntry } from './DirectoryListing';
+	import type { AppController } from './AppController';
+	import type { DirectoryEntry } from './models/local/DirectoryListing';
 	import FileBrowser from './FileBrowser.svelte';
 	import Modal from './Modal.svelte';
 
-	export let model: Controller;
+	export let model: AppController;
 
 	let load_file_requested = false;
 	let selected_file: DirectoryEntry;
