@@ -7,12 +7,11 @@ import type CommandInfo from './models/api/CommandInfo';
 import type SerialPort from './models/api/SerialPort';
 import type SigninResponse from './models/api/SigninResponse';
 import type ListingResponse from './models/api/ListingResponse';
-import type ControllerInfo from './models/api/ControllerInfo';
 import { derived, get, writable, type Readable } from 'svelte/store';
 import type SenderStatus from './models/api/SenderStatus';
 import type ControllerState from './models/api/ControllerState';
-import type { ControllerSettings, WorkflowState } from './models/api/ControllerInfo';
 import type FeederStatus from './models/api/FeederStatus';
+import type { ControllerInfo, ControllerSettings, WorkflowState } from './models/api/ControllerInfo';
 
 export class AppController {
 	public static async Initialize(): Promise<AppController> {
@@ -57,11 +56,12 @@ export class AppController {
 				if (current) {
 					//patch the current settings.
 					current.controller.state = cstate || current.controller.state;
+					current.controller.settings = settings || current.controller.settings;
+
 					current.sender = sender || current.sender;
 					current.workflow = wstate || current.workflow;
-					current.controller.settings = settings || current.controller.settings;
 					current.feeder = feeder || current.feeder;
-					return current;
+					return Object.assign({}, current);
 				}
 			}
 			return null;
@@ -248,16 +248,16 @@ export class AppController {
 			//this._socket.on('gcode:load', (name, _) => this._loaded_gcode.set(name));
 			//this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
 
-			this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
-			this._socket.on('sender:status', (s) => this._sender_status.set(s));
-			this._socket.on('controller:state', (_, state) => this._controller_state.set(state));
-			this._socket.on('workflow:state', (s) => this._workflow_state.set(s));
-			this._socket.on('controller:settings', (s) => this._controller_settings.set(s));
+			this._socket.on('feeder:status', (f) => this._feeder_status.update(f));
+			this._socket.on('sender:status', (s) => this._sender_status.update(s));
+			this._socket.on('controller:state', (_, state) => this._controller_state.update(state));
+			this._socket.on('workflow:state', (s) => this._workflow_state.update(s));
+			this._socket.on('controller:settings', (s) => this._controller_settings.update(s));
 			this._socket.on('serialport:change', async () =>
-				this._controllers.set(await this.request_json('/api/controllers'))
+				this._controllers.update(await this.request_json('/api/controllers'))
 			);
 			this._socket.on('serialport:open', async () =>
-				this._controllers.set(await this.request_json('/api/controllers'))
+				this._controllers.update(await this.request_json('/api/controllers'))
 			);
 
 			this.configure_serialport_handling();
@@ -275,7 +275,7 @@ export class AppController {
 	 */
 	private configure_update_timers() {
 		//setInterval(() => this.write('?'), 3000);
-		setInterval(async () => this._controllers.set(await this.request_json('/api/controllers')), 1000);
+		//setInterval(async () => this._controllers.set(await this.request_json('/api/controllers')), 1000);
 	}
 
 	/**

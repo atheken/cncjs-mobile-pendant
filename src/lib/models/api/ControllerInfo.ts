@@ -21,9 +21,8 @@ export interface ControllerSettings {
 	settings: object;
 }
 
-export default interface ControllerInfo {
+export interface ControllerInfo {
 	port: string;
-
 	baudrate: number;
 	rtscts: boolean;
 	sockets: string[];
