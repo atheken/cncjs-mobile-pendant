@@ -243,7 +243,7 @@ export class Controller {
 	}
 
 	write(command: string, appendNewline: boolean = false) {
-		if(get(this._active_port)?.port){
+		if (get(this._active_port)?.port) {
 			let write = appendNewline ? 'writeln' : 'write';
 			this.cncjs_command(write, get(this.active_port)?.port, command, {
 				_sender_: this._controller_id
@@ -403,8 +403,9 @@ export class Controller {
 			});
 
 			setInterval(() => {
+				// Query the cnc status every 5s.
 				this.write('?');
-				this.write('$$');
+				//
 			}, 5000);
 
 			this._socket.on('serialport:change', (f: SerialPort) => {
