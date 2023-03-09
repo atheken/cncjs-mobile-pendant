@@ -3,7 +3,6 @@
 	import Divider from './Divider.svelte';
 
 	export let model: AppController;
-
 	let controller = model.controller;
 </script>
 

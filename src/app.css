@@ -54,6 +54,7 @@
 
 .btn {
   @apply rounded-sm;
+  @apply border-none;
 }
 
 table,thead,tr,th,td {
@@ -63,4 +64,8 @@ table,thead,tr,th,td {
 
 thead {
   @apply bg-slate-200;
+}
+
+.badge {
+  @apply align-middle;
 }

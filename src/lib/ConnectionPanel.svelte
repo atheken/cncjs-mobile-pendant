@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
 	export let displayPanel = writable(false);
+	let hasAutoconnected = false;
 </script>
 
 <script lang="ts">
@@ -17,8 +18,11 @@
 
 	ports.subscribe((p) => {
 		let port = state.connection?.port;
-		if (state.connection.autoconnect && p.find((f) => f.port == port)) {
+		if (state.connection.autoconnect && p.find((f) => f.port == port) && !hasAutoconnected) {
 			connect();
+			//once we have autoconnected the first time,
+			// we don't want the app to do it again until page reload.
+			hasAutoconnected = true;
 		}
 	});
 
@@ -50,14 +54,14 @@
 						<option value={p.port} selected={state.connection.port == p.port}>{p.port}</option>
 					{/each}
 				</select>
-				<button class="btn-outline btn btn-sm" on:click={() => model.refresh_serial_list()}
+				<button class="btn-outline btn-sm btn" on:click={() => model.refresh_serial_list()}
 					><Icon icon="refresh" /></button>
 			</label>
 			<label class="block">
 				Baud Rate:
-				<select bind:value={state.connection.baud_rate}>
+				<select bind:value={state.connection.baudrate}>
 					{#each rates as r (r)}
-						<option value={r} selected={state.connection.baud_rate == r}>{r}</option>
+						<option value={r} selected={state.connection.baudrate == r}>{r}</option>
 					{/each}
 				</select>
 			</label>
@@ -68,21 +72,17 @@
 			</div>
 			<div class="form-control w-full">
 				<label for="reconnect">
-					<input
-						type="checkbox"
-						id="reconnect"
-						class="toggle"
-						bind:checked={state.connection.enable_hardware_flow_control} />
+					<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.rtscts} />
 					Use Hardware Flow Control</label>
 			</div>
 		</div>
 		<button
-			class="btn btn-error btn-sm justify-end text-left"
+			class="btn-error btn-sm btn justify-end text-left"
 			disabled={$active_port?.port == null}
 			on:click={() => disconnect()}>
 			Disconnect</button>
 		<button
-			class="btn btn-success btn-sm justify-end text-right"
+			class="btn-success btn-sm btn justify-end text-right"
 			disabled={!state.connection.port}
 			on:click={() => connect()}>Connect</button>
 	</div>

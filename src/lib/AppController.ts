@@ -13,6 +13,8 @@ import type ControllerState from './models/api/ControllerState';
 import type FeederStatus from './models/api/FeederStatus';
 import type { ControllerInfo, ControllerSettings, WorkflowState } from './models/api/ControllerInfo';
 
+type ConnectionStatus = 'disconnected' | 'connected' | 'error' | 'pending';
+
 export class AppController {
 	public static async Initialize(): Promise<AppController> {
 		var c = new AppController();
@@ -20,7 +22,7 @@ export class AppController {
 		return c;
 	}
 
-	private _active_port = writable<SerialPort>(null);
+	private _active_port = writable<ConnectionSettings>(null);
 
 	private _client_id = ulid();
 	private _socket: io.socket;
@@ -36,7 +38,8 @@ export class AppController {
 	private _workflow_state = writable<WorkflowState>(null);
 	private _controller_settings = writable<ControllerSettings>(null);
 	private _feeder_status = writable<FeederStatus>(null);
-
+	private _serial_connection_state = writable<ConnectionStatus>('disconnected');
+	private _server_connection_status = writable<ConnectionStatus>('disconnected');
 	// private _senderStatus = writable<SenderStatus>(null);
 	// private _controllerState = writable<ControllerState>(null);
 
@@ -61,16 +64,14 @@ export class AppController {
 					current.sender = sender || current.sender;
 					current.workflow = wstate || current.workflow;
 					current.feeder = feeder || current.feeder;
-					return Object.assign({}, current);
+					return current;
 				}
 			}
 			return null;
 		}
 	);
 
-	connected_to_server = writable<boolean>(false);
-
-	get active_port(): Readable<SerialPort> {
+	get active_port(): Readable<ConnectionSettings> {
 		return this._active_port;
 	}
 
@@ -133,12 +134,11 @@ export class AppController {
 	close_connection(): any {
 		this.cncjs_command('close', get(this._active_port)?.port);
 	}
+
 	open_connection(settings: ConnectionSettings) {
-		this.cncjs_command('open', settings.port, {
-			controllerType: settings.controller_type,
-			baudrate: settings.baud_rate,
-			rtscts: settings.enable_hardware_flow_control
-		});
+		this._serial_connection_state.set('pending');
+		this.cncjs_command('open', settings.port, settings);
+		this._active_port.set(settings);
 	}
 
 	refresh_serial_list() {
@@ -225,12 +225,15 @@ export class AppController {
 
 			this._socket.on('serialport:list', async (ports: SerialPort[]) => {
 				this._ports.set(ports);
-				this._active_port.set(ports.find((p) => p.inuse));
+				let currentport = get(this._active_port)?.port;
+
+				// if none of the ports match the one
+				// we're currently on, we need update our state to no longer reference it..
+				if (!ports.find((p) => p.port == currentport)) {
+					this._active_port.set(null);
+				}
 				this._controllers.set(await this.request_json('/api/controllers'));
 			});
-
-			// initialize serial list.
-			this.refresh_serial_list();
 
 			this._socket.on('config:change', async () => {
 				await this.load_config();
@@ -239,7 +242,7 @@ export class AppController {
 			await this.load_config();
 
 			// listen for generic events so that this will handle them.
-			['task:start', 'task:finish', 'task:error', 'serialport:error', 'serialport:write', 'message'].forEach((r) =>
+			['task:start', 'task:finish', 'task:error', 'message'].forEach((r) =>
 				this._socket.on(r, (p) => console.debug({ name: r, payload: p }))
 			);
 
@@ -248,34 +251,27 @@ export class AppController {
 			//this._socket.on('gcode:load', (name, _) => this._loaded_gcode.set(name));
 			//this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
 
-			this._socket.on('feeder:status', (f) => this._feeder_status.update(f));
-			this._socket.on('sender:status', (s) => this._sender_status.update(s));
-			this._socket.on('controller:state', (_, state) => this._controller_state.update(state));
-			this._socket.on('workflow:state', (s) => this._workflow_state.update(s));
-			this._socket.on('controller:settings', (s) => this._controller_settings.update(s));
-			this._socket.on('serialport:change', async () =>
-				this._controllers.update(await this.request_json('/api/controllers'))
-			);
-			this._socket.on('serialport:open', async () =>
-				this._controllers.update(await this.request_json('/api/controllers'))
-			);
+			this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
+			this._socket.on('sender:status', (s) => this._sender_status.set(s));
+			this._socket.on('controller:state', (_, state) => this._controller_state.set(state));
+			this._socket.on('workflow:state', (s) => this._workflow_state.set({ state: s }));
+			this._socket.on('controller:settings', (s) => this._controller_settings.set(s));
+
+			// listen for connection events, these will establish this client as a serial port listener.
+			this._server_connection_status.subscribe((k) => {
+				let port = get(this._active_port);
+				if (k == 'connected' && port?.port) {
+					this.open_connection(port);
+				}
+				this.refresh_serial_list();
+			});
 
 			this.configure_serialport_handling();
-
-			this.configure_update_timers();
 
 			this._socket.connect();
 		} catch (err) {
 			throw err;
 		}
-	}
-
-	/**
-	 * Periodically polls for updated informationf from the server.
-	 */
-	private configure_update_timers() {
-		//setInterval(() => this.write('?'), 3000);
-		//setInterval(async () => this._controllers.set(await this.request_json('/api/controllers')), 1000);
 	}
 
 	/**
@@ -333,51 +329,55 @@ export class AppController {
 			}
 		});
 
-		// set the overall socket status to connected.
-		this._socket.on('connect', () => this.connected_to_server.set(true));
+		let io_events = {
+			error: ['connect_error', 'connect_timeout', 'error', 'reconnect_error', 'reconnect_failed'],
+			connected: ['reconnect', 'connect'],
+			pending: ['reconnect_attempt', 'reconnecting'],
+			disconnected: ['disconnect']
+		};
 
-		//TODO: configure listening for disconnects/reconnects, etc.
-
-		[
-			'connect_error',
-			'connect_timeout',
-			'error',
-			'disconnect',
-			'reconnect',
-			'reconnect_attempt',
-			'reconnecting',
-			'reconnect_error',
-			'reconnect_failed'
-		].forEach((f) => this._socket.on(f, () => this.connected_to_server.set(false)));
+		Object.keys(io_events).forEach((key: ConnectionStatus) => {
+			io_events[key].forEach((event) => this._socket.on(event, () => this._server_connection_status.set(key)));
+		});
 	}
 
 	/** Configures serial ports event handling. */
 	private configure_serialport_handling() {
-		this._socket.on('serialport:open', (f) => {
-			this._active_port.set(f);
+		this._socket.on('serialport:change', (f: SerialPort) => {
+			// if (f?.inuse) {
+			// 	this._active_port.set(f);
+			// } else {
+			// 	this._active_port.set(null);
+			// }
 		});
 
-		this._socket.on('serialport:change', (f: SerialPort) => {
-			// this code is potentially hazardous, as it is making an assumption that
-			// cncjs is only connected to a single port, which may not be true
-			if (f?.inuse) {
-				this._active_port.set(f);
-				// this.write('?');
-				// this.write('$');
-			} else {
-				this._active_port.set(null);
+		////Do we want to stream the serial port content to the screen?
+		//['serialport:write'];
+
+		this._socket.on('serialport:error', (f) => {
+			if (f.port == get(this._active_port)?.port) {
+				this._serial_connection_state.set('error');
 			}
 		});
 
-		this._socket.on('serialport:error', (f) => {
-			//this._active_port.set(f);
+		this._socket.on('serialport:close', async (f) => {
+			if (f.port == get(this._active_port)?.port) {
+				this._serial_connection_state.set('disconnected');
+				this._active_port.set(null);
+				this.refresh_serial_list();
+				this._controllers.set(await this.request_json('/api/controllers'));
+			}
 		});
 
-		//this._socket.on('controller:state', (_, g) => this._controller_state.set(g));
+		this._socket.on('serialport:change', async () =>
+			this._controllers.set(await this.request_json('/api/controllers'))
+		);
 
-		this._socket.on('serialport:close', () => {
-			this._active_port.set(null);
-			this.refresh_serial_list();
+		this._socket.on('serialport:open', async (s) => {
+			if (s.port == get(this._active_port)?.port) {
+				this._serial_connection_state.set('connected');
+			}
+			this._controllers.set(await this.request_json('/api/controllers'));
 		});
 	}
 

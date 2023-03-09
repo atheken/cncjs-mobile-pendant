@@ -53,37 +53,43 @@
 			model.load_gcode(item.name, await item.text());
 		}
 	});
+
+	let workflowstate = derived(model.controller, (c) => c?.workflow?.state || 'unknown');
 </script>
 
-<div>
-	<div class="btn-group px-2 text-center">
-		<button
-			class="btn-primary btn-sm"
-			on:click={() => {
-				model.start_or_resume_gcode();
-			}}><span class="fa fa-play" /></button>
-		<button
-			class="btn-info btn-sm"
-			on:click={() => {
-				model.pause_gcode();
-			}}><span class="fa fa-pause" /></button>
-		<button
-			class="btn-warning btn-sm"
-			on:click={() => {
-				model.stop_gcode();
-			}}><span class="fa fa-stop" /></button>
-		<button
-			class="btn-error btn-sm"
-			on:click={() => {
-				model.unload_gcode();
-			}}
-			><span class="fa fa-close" />
-		</button>
+<div class="grid grid-cols-1 justify-items-center">
+	<div class="flex w-full place-content-center">
+		<div class="flex-basis-1/3"><span class="badge">{$workflowstate}</span></div>
+		<div class="flex-basis-2/3 px-2 text-white">
+			<button
+				disabled={$workflowstate != 'paused'}
+				class="btn-sm btn bg-green-400"
+				on:click={() => {
+					model.start_or_resume_gcode();
+				}}><span class="fa fa-play" /></button>
+			<button
+				disabled={$workflowstate != 'running'}
+				class="btn-sm btn bg-blue-400 "
+				on:click={() => {
+					model.pause_gcode();
+				}}><span class="fa fa-pause" /></button>
+
+			<button
+				class="btn-sm btn bg-yellow-400"
+				on:click={() => {
+					model.stop_gcode();
+				}}><span class="fa fa-stop" /></button>
+			<button
+				class="btn-sm btn bg-red-500"
+				on:click={() => {
+					model.unload_gcode();
+				}}
+				><span class="fa fa-xmark" />
+			</button>
+		</div>
 	</div>
+	<Divider>Loaded G-code</Divider>
 	<div>
-		<Divider>Job Status</Divider>
-		Status: {$controller?.feeder?.activeState}
-		<Divider>Loaded G-code</Divider>
 		<span class="text-label text-xs">Loaded File:</span>
 		<span class="text-sm italic">{$controller?.sender?.name || '<none>'}</span>
 		<div class="grid grid-cols-2 gap-1 px-1">
@@ -94,11 +100,11 @@
 					bind:files={$files}
 					class="file-input-bordered file-input file-input-sm w-full max-w-xs" />
 			</div>
-			<button class="btn btn-sm" on:click={() => (load_file_requested = true)}>Browse...</button>
+			<button class="btn-sm btn" on:click={() => (load_file_requested = true)}>Browse...</button>
 		</div>
 	</div>
 	<Divider>Machine State</Divider>
-	<div class="grid grid-cols-4">
+	<div class="grid grid-cols-4 px-2">
 		<div>Axis</div>
 		<div>Min</div>
 		<div>Max</div>
@@ -116,8 +122,9 @@
 		<div>{$jobcontext?.zmax}</div>
 		<div>Z?</div>
 	</div>
+
 	<Divider>Job Stats</Divider>
-	<div class="stats w-9/12 bg-slate-50 shadow">
+	<div class="w-9/12-md stats w-[97%] w-full border-[1px] bg-slate-50">
 		<div class="stat">
 			<div class="stat-title">Progress</div>
 			{#if $controller?.sender && $controller.sender.total > 0}
@@ -151,7 +158,7 @@
 				{#if $controller.sender?.holdReason && !$controller.sender.holdReason.err}
 					The job is on hold due to: {$controller.sender?.holdReason?.msg}.
 					{#if $controller.sender.holdReason.data == 'M6'}
-						<button class="btn btn-xs" on:click={() => {}}>Z-Probe</button>
+						<button class="btn-xs btn" on:click={() => {}}>Z-Probe</button>
 					{/if}
 				{:else if $controller.sender?.holdReason?.err}
 					<div class="text-error">The job is on hold due to the following error:</div>
@@ -159,7 +166,10 @@
 				{:else}
 					<div class="text-center">Job has been manually paused.</div>
 				{/if}
-				<button class="btn btn-xs text-right" on:click={() => model.start_or_resume_gcode()}>Continue</button>
+				<div class="flex w-full place-content-end">
+					<button class="btn-xs btn border-none bg-green-600 text-white" on:click={() => model.start_or_resume_gcode()}
+						><span class="fa fa-play" />&nbsp;Continue</button>
+				</div>
 			</div>
 		</Modal>
 	{/if}
