@@ -5,6 +5,7 @@
 	import FileBrowser from './FileBrowser.svelte';
 	import Modal from './Modal.svelte';
 	import Divider from './Divider.svelte';
+	import HoldReasonModal from './HoldReasonModal.svelte';
 
 	export let model: AppController;
 
@@ -62,7 +63,7 @@
 		<div class="flex-basis-1/3"><span class="badge">{$workflowstate}</span></div>
 		<div class="flex-basis-2/3 px-2 text-white">
 			<button
-				disabled={$workflowstate != 'paused'}
+				disabled={$workflowstate != 'paused' && $workflowstate != 'idle'}
 				class="btn-sm btn bg-green-400"
 				on:click={() => {
 					model.start_or_resume_gcode();
@@ -103,28 +104,9 @@
 			<button class="btn-sm btn" on:click={() => (load_file_requested = true)}>Browse...</button>
 		</div>
 	</div>
-	<Divider>Job Dimensions</Divider>
-	<div class="grid grid-cols-4 px-2">
-		<div>Axis</div>
-		<div>Min</div>
-		<div>Max</div>
-		<div>Dimension</div>
-		<div>X</div>
-		<div>{$jobcontext?.xmin}</div>
-		<div>{$jobcontext?.xmax}</div>
-		<div>X?</div>
-		<div>Y</div>
-		<div>{$jobcontext?.ymin}</div>
-		<div>{$jobcontext?.ymax}</div>
-		<div>Y?</div>
-		<div>Z</div>
-		<div>{$jobcontext?.zmin}</div>
-		<div>{$jobcontext?.zmax}</div>
-		<div>Z?</div>
-	</div>
 
 	<Divider>Job Stats</Divider>
-	<div class="w-9/12-md stats w-[97%] w-full border-[1px] bg-slate-50">
+	<div class="w-9/12-md stats w-[97%] border-[1px] bg-slate-50">
 		<div class="stat">
 			<div class="stat-title">Progress</div>
 			{#if $controller?.sender && $controller.sender.total > 0}
@@ -146,31 +128,13 @@
 		<div slot="heading">Load G-code</div>
 		<div slot="content">
 			<FileBrowser {model} bind:selected_file bind:file_path />
-			<div class="modal-action">
-				<button disabled={!selected_file} class="btn" on:click={() => load_file()}>Select file</button>
-			</div>
+		</div>
+		<div slot="actions">
+			<button disabled={!selected_file} class="btn-md btn bg-green-500" on:click={() => load_file()}
+				>Select file</button>
 		</div>
 	</Modal>
-	{#if $controller?.sender}
-		<Modal visible={$controller.sender?.hold || false} blockaccess={false}>
-			<div slot="heading">Job on Hold</div>
-			<div slot="content">
-				{#if $controller.sender?.holdReason && !$controller.sender.holdReason.err}
-					The job is on hold due to: {$controller.sender?.holdReason?.msg}.
-					{#if $controller.sender.holdReason.data == 'M6'}
-						<button class="btn-xs btn" on:click={() => {}}>Z-Probe</button>
-					{/if}
-				{:else if $controller.sender?.holdReason?.err}
-					<div class="text-error">The job is on hold due to the following error:</div>
-					<div class="text-monospace">{$controller.sender.holdReason.msg}</div>
-				{:else}
-					<div class="text-center">Job has been manually paused.</div>
-				{/if}
-				<div class="flex w-full place-content-end">
-					<button class="btn-xs btn border-none bg-green-600 text-white" on:click={() => model.start_or_resume_gcode()}
-						><span class="fa fa-play" />&nbsp;Continue</button>
-				</div>
-			</div>
-		</Modal>
+	{#if $controller?.sender?.hold}
+		<HoldReasonModal {model} />
 	{/if}
 </div>

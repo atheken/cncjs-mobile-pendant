@@ -45,37 +45,42 @@
 
 <Modal visible={$displayPanel} on:dismiss-requested={() => displayPanel.set(false)}>
 	<span slot="heading">Connection Options</span>
-	<div slot="content" class="w-full">
-		<div>
-			<label class="block"
+	<div slot="content" class="grid grid-cols-1 place-items-center">
+		<div class="flex">
+			<label
 				>Serial Port:
-				<select class="select-primary select select-sm w-2/3" bind:value={state.connection.port}>
+				<select class="border-1 select select-sm border-slate-200" bind:value={state.connection.port}>
 					{#each $ports as p (p.port)}
 						<option value={p.port} selected={state.connection.port == p.port}>{p.port}</option>
 					{/each}
 				</select>
-				<button class="btn-outline btn-sm btn" on:click={() => model.refresh_serial_list()}
-					><Icon icon="refresh" /></button>
+				<button
+					class="border-1 btn-sm btn bg-slate-200 text-slate-900 hover:bg-slate-400"
+					on:click={() => model.refresh_serial_list()}><Icon icon="refresh" /></button>
 			</label>
-			<label class="block">
+		</div>
+		<div class="flex">
+			<label>
 				Baud Rate:
-				<select bind:value={state.connection.baudrate}>
+				<select bind:value={state.connection.baudrate} class="border-1 select select-sm border-slate-200">
 					{#each rates as r (r)}
 						<option value={r} selected={state.connection.baudrate == r}>{r}</option>
 					{/each}
 				</select>
 			</label>
-			<div class="form-control w-full">
-				<label for="reconnect">
-					<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.autoconnect} />
-					Connect Automatically</label>
-			</div>
-			<div class="form-control w-full">
-				<label for="reconnect">
-					<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.rtscts} />
-					Use Hardware Flow Control</label>
-			</div>
 		</div>
+		<div class="form-control flex">
+			<label for="reconnect">
+				<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.autoconnect} />
+				Connect Automatically</label>
+		</div>
+		<div class="form-control flex">
+			<label for="reconnect">
+				<input type="checkbox" id="reconnect" class="toggle" bind:checked={state.connection.rtscts} />
+				Use Hardware Flow Control</label>
+		</div>
+	</div>
+	<div slot="actions">
 		<button
 			class="btn-error btn-sm btn justify-end text-left"
 			disabled={$active_port?.port == null}

@@ -57,6 +57,10 @@
   @apply border-none;
 }
 
+.btn.btn-outline {
+  @apply border-[1px];
+}
+
 table,thead,tr,th,td {
   @apply rounded-lg;
   @apply border-separate;
@@ -68,4 +72,34 @@ thead {
 
 .badge {
   @apply align-middle;
+}
+
+.port-status-pending {
+  @apply bg-yellow-100;
+  @apply text-yellow-800;
+}
+
+.port-status-disconnected {
+  @apply bg-blue-100;
+  @apply text-blue-800;
+}
+
+.port-status-connected {
+  @apply bg-green-100;
+  @apply text-green-800;
+}
+
+.port-status-error {
+  @apply bg-red-300;
+  @apply text-red-900;
+}
+
+.mdl [slot=actions]
+{
+  @apply flex w-full place-content-end p-1 space-x-1;
+}
+
+.mdl [slot=heading]
+{
+  @apply w-full bg-gray-200 p-2 text-center block;
 }

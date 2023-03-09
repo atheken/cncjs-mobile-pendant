@@ -4,24 +4,29 @@
 	import { derived } from 'svelte/store';
 
 	export let model: AppController;
-	let port = derived(model.active_port, (p) => p?.port || false);
+
+	let statuses = {
+		error: { icon: 'fire animate-pulse', label: 'Error connecting to:' },
+		connected: { icon: 'bolt animate-pulse', label: 'Connected to:' },
+		disconnected: { icon: 'handshake-slash', label: 'Not Connected:' },
+		pending: { icon: 'arrow-rotate-right animate-spin', label: 'Connecting to:' }
+	};
+
+	let status = derived([model.active_port, model.serial_connection_status], ([p, s]) => {
+		return {
+			port: p?.port,
+			status: s,
+			icon: statuses[s].icon,
+			label: statuses[s].label
+		};
+	});
 </script>
 
-<div class="status w-full p-1 text-center align-middle text-sm" class:ok={$port} class:disconnected={!$port}>
-	<span class="fa fa-alert" class:fa-bolt={$port} class:fa-handshake-slash={!$port} />
-	{#if $port}
-		<span class="text-xs">Connected to:</span>
-		<button
-			class="link font-mono"
-			on:click={() => {
-				displayPanel.set(true);
-			}}>{$port}</button>
-	{:else}
-		<span class="text-xs">Not Connected</span>
-		<button
-			class="link font-mono"
-			on:click={() => {
-				displayPanel.set(true);
-			}}>Connect...</button>
-	{/if}
+<div class="status w-full p-1 text-center align-middle text-sm port-status-{$status.status}">
+	<span class="fa fa-{$status.icon}" />&nbsp; {$status.label}
+	<button
+		class="link font-mono"
+		on:click={() => {
+			displayPanel.set(true);
+		}}>{$status.port || 'Connect...'}</button>
 </div>
