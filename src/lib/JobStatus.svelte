@@ -103,7 +103,7 @@
 			<button class="btn-sm btn" on:click={() => (load_file_requested = true)}>Browse...</button>
 		</div>
 	</div>
-	<Divider>Machine State</Divider>
+	<Divider>Job Dimensions</Divider>
 	<div class="grid grid-cols-4 px-2">
 		<div>Axis</div>
 		<div>Min</div>
