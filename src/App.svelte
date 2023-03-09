@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AppController } from './lib/AppController';
+	import { AppController, type ConnectionStatus } from './lib/AppController';
 	import StandardControls from './lib/StandardControls.svelte';
 	import JogControls from './lib/JogControls.svelte';
 	import JobStatus from './lib/JobStatus.svelte';
@@ -9,6 +9,7 @@
 	import Status from './lib/Status.svelte';
 	import DebugPanel from './lib/DebugPanel.svelte';
 	import ErrorPage from './lib/ErrorPage.svelte';
+	import type { Readable } from 'svelte/store';
 
 	let controller: AppController;
 	let active_port;
@@ -37,9 +38,12 @@
 	let selected_tab_id = 'commands';
 	let error;
 
+	let connection_status: Readable<ConnectionStatus>;
+
 	onMount(async () => {
 		try {
 			controller = await AppController.Initialize();
+			connection_status = controller.server_connection_status;
 			active_port = controller.active_port;
 		} catch (err) {
 			error = err;
@@ -48,7 +52,7 @@
 	});
 </script>
 
-{#if error}
+{#if error || $connection_status == 'error' || $connection_status == 'disconnected'}
 	<ErrorPage {error} />
 {:else if !controller}
 	<div class="text-center align-middle">Mobile Pendant is Loading</div>

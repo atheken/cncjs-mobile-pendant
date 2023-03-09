@@ -13,7 +13,7 @@ import type ControllerState from './models/api/ControllerState';
 import type FeederStatus from './models/api/FeederStatus';
 import type { ControllerInfo, ControllerSettings, WorkflowState } from './models/api/ControllerInfo';
 
-type ConnectionStatus = 'disconnected' | 'connected' | 'error' | 'pending';
+export type ConnectionStatus = 'disconnected' | 'connected' | 'error' | 'pending';
 
 export class AppController {
 	public static async Initialize(): Promise<AppController> {
@@ -38,7 +38,7 @@ export class AppController {
 	private _workflow_state = writable<WorkflowState>(null);
 	private _controller_settings = writable<ControllerSettings>(null);
 	private _feeder_status = writable<FeederStatus>(null);
-	private _serial_connection_state = writable<ConnectionStatus>('disconnected');
+	private _serial_connection_status = writable<ConnectionStatus>('disconnected');
 	private _server_connection_status = writable<ConnectionStatus>('disconnected');
 	// private _senderStatus = writable<SenderStatus>(null);
 	// private _controllerState = writable<ControllerState>(null);
@@ -77,6 +77,14 @@ export class AppController {
 
 	get ports(): Readable<SerialPort[]> {
 		return this._ports;
+	}
+
+	get server_connection_status(): Readable<ConnectionStatus> {
+		return this._server_connection_status;
+	}
+
+	get serial_connection_status(): Readable<ConnectionStatus> {
+		return this._serial_connection_status;
 	}
 
 	async get_state(key: string = ''): Promise<any> {
@@ -136,7 +144,7 @@ export class AppController {
 	}
 
 	open_connection(settings: ConnectionSettings) {
-		this._serial_connection_state.set('pending');
+		this._serial_connection_status.set('pending');
 		this.cncjs_command('open', settings.port, settings);
 		this._active_port.set(settings);
 	}
@@ -356,13 +364,13 @@ export class AppController {
 
 		this._socket.on('serialport:error', (f) => {
 			if (f.port == get(this._active_port)?.port) {
-				this._serial_connection_state.set('error');
+				this._serial_connection_status.set('error');
 			}
 		});
 
 		this._socket.on('serialport:close', async (f) => {
 			if (f.port == get(this._active_port)?.port) {
-				this._serial_connection_state.set('disconnected');
+				this._serial_connection_status.set('disconnected');
 				this._active_port.set(null);
 				this.refresh_serial_list();
 				this._controllers.set(await this.request_json('/api/controllers'));
@@ -375,7 +383,7 @@ export class AppController {
 
 		this._socket.on('serialport:open', async (s) => {
 			if (s.port == get(this._active_port)?.port) {
-				this._serial_connection_state.set('connected');
+				this._serial_connection_status.set('connected');
 			}
 			this._controllers.set(await this.request_json('/api/controllers'));
 		});
