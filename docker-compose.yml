@@ -12,7 +12,6 @@ services:
     build: ./cncjs/container
     volumes:
       - ./cncjs:/root
-      - ./dist:/root/dist
     depends_on:
       - grbl-sim
     restart: always

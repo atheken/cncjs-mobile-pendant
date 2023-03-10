@@ -31,13 +31,12 @@
 	<div slot="actions">
 		{#if $controller?.sender?.holdReason?.data == 'M6'}
 			<button
-				class="btn-sm btn"
+				class="btn btn-sm"
 				on:click={() => {
 					console.log('z-probe requested.');
 				}}>Z-Probe</button>
 		{/if}
-		<button
-			class="btn-sm btn border-none bg-green-600 text-white"
-			on:click={() => $appController.start_or_resume_gcode()}><span class="fa fa-play" />&nbsp;Continue</button>
+		<button class="btn btn-sm border-none bg-green-600 text-white" on:click={() => model.start_or_resume_gcode()}
+			><span class="fa fa-play" />&nbsp;Continue</button>
 	</div>
 </Modal>

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { derived, type Readable } from 'svelte/store';
-	import type ControllerInfo from './models/api/ControllerInfo';
-	
+	import type { ControllerInfo } from './models/api/ControllerInfo';
+
 	export let model: Readable<ControllerInfo>;
-	let coords = derived(model, m => m?.controller?.state?.status)
+	let coords = derived(model, (m) => m?.controller?.state?.status);
 </script>
 
 <table class="w-full border-[1px] text-center">

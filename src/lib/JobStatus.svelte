@@ -56,6 +56,7 @@
 	});
 
 	let workflowstate = derived(model.controller, (c) => c?.workflow?.state || 'unknown');
+	let loaded_file = derived(model.controller, (c) => c?.sender.name);
 </script>
 
 <div class="grid grid-cols-1 justify-items-center">
@@ -63,25 +64,27 @@
 		<div class="flex-basis-1/3"><span class="badge">{$workflowstate}</span></div>
 		<div class="flex-basis-2/3 px-2 text-white">
 			<button
-				disabled={$workflowstate != 'paused' && $workflowstate != 'idle'}
-				class="btn-sm btn bg-green-400"
+				disabled={!$loaded_file || ($workflowstate != 'paused' && $workflowstate != 'idle')}
+				class="btn btn-sm bg-green-400"
 				on:click={() => {
 					model.start_or_resume_gcode();
 				}}><span class="fa fa-play" /></button>
 			<button
-				disabled={$workflowstate != 'running'}
-				class="btn-sm btn bg-blue-400 "
+				disabled={!$loaded_file || $workflowstate != 'running'}
+				class="btn btn-sm bg-blue-400 "
 				on:click={() => {
 					model.pause_gcode();
 				}}><span class="fa fa-pause" /></button>
 
 			<button
-				class="btn-sm btn bg-yellow-400"
+				disabled={!$loaded_file || $workflowstate != 'paused'}
+				class="btn btn-sm bg-yellow-400"
 				on:click={() => {
 					model.stop_gcode();
 				}}><span class="fa fa-stop" /></button>
 			<button
-				class="btn-sm btn bg-red-500"
+				disabled={!$loaded_file || $workflowstate != 'idle'}
+				class="btn btn-sm bg-red-500"
 				on:click={() => {
 					model.unload_gcode();
 				}}
@@ -101,7 +104,7 @@
 					bind:files={$files}
 					class="file-input-bordered file-input file-input-sm w-full max-w-xs" />
 			</div>
-			<button class="btn-sm btn" on:click={() => (load_file_requested = true)}>Browse...</button>
+			<button class="btn btn-sm" on:click={() => (load_file_requested = true)}>Browse...</button>
 		</div>
 	</div>
 
@@ -130,7 +133,7 @@
 			<FileBrowser {model} bind:selected_file bind:file_path />
 		</div>
 		<div slot="actions">
-			<button disabled={!selected_file} class="btn-md btn bg-green-500" on:click={() => load_file()}
+			<button disabled={!selected_file} class="btn btn-md bg-green-500" on:click={() => load_file()}
 				>Select file</button>
 		</div>
 	</Modal>

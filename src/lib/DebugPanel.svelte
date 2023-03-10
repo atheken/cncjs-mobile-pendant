@@ -9,8 +9,8 @@
 <div>
 	<Divider>Debug</Divider>
 	<div class="flex flex-row place-content-center space-x-1">
-		<button class="btn-sm btn basis-[45%]" on:click={() => model.cncjs_command('statusreport')}>Status report</button>
-		<button class="btn-sm btn basis-[45%]" on:click={() => model.cncjs_command('probe')}>probe</button>
+		<button class="btn btn-sm basis-[45%]" on:click={() => model.cncjs_command('statusreport')}>Status report</button>
+		<button class="btn btn-sm basis-[45%]" on:click={() => model.cncjs_command('probe')}>probe</button>
 	</div>
 	{#key $controller}
 		<Divider>Controller:</Divider>
