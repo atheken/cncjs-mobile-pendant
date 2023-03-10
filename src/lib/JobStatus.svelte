@@ -94,9 +94,11 @@
 	</div>
 	<Divider>Loaded G-code</Divider>
 	<div>
-		<span class="text-label text-xs">Loaded File:</span>
-		<span class="text-sm italic">{$controller?.sender?.name || '<none>'}</span>
-		<div class="grid grid-cols-2 gap-1 px-1">
+		<div class="p-2 text-center">
+			<div class="text-label text-xs">Loaded File:</div>
+			<div class="text-sm italic">{$loaded_file || '<none>'}</div>
+		</div>
+		<div class="grid grid-cols-2 gap-1 p-1">
 			<div class="form-control max-w-xs">
 				<input
 					type="file"
