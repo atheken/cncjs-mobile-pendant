@@ -40,8 +40,6 @@ export class AppController {
 	private _feeder_status = writable<FeederStatus>(null);
 	private _serial_connection_status = writable<ConnectionStatus>('disconnected');
 	private _server_connection_status = writable<ConnectionStatus>('disconnected');
-	// private _senderStatus = writable<SenderStatus>(null);
-	// private _controllerState = writable<ControllerState>(null);
 
 	private _controller = derived(
 		[

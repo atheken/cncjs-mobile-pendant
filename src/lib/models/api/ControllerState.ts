@@ -1,6 +1,8 @@
+import type * as constants from './Constants';
+
 export default interface ControllerState {
 	status: {
-		activeState: string;
+		activeState: constants.GrblActiveStates | constants.SmoothieActiveStates | constants.TinygActiveStates;
 		mpos: {
 			x: number;
 			y: number;

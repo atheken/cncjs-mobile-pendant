@@ -65,26 +65,26 @@
 		<div class="flex-basis-2/3 px-2 text-white">
 			<button
 				disabled={!$loaded_file || ($workflowstate != 'paused' && $workflowstate != 'idle')}
-				class="btn btn-sm bg-green-400"
+				class="btn-sm btn bg-green-400"
 				on:click={() => {
 					model.start_or_resume_gcode();
 				}}><span class="fa fa-play" /></button>
 			<button
 				disabled={!$loaded_file || $workflowstate != 'running'}
-				class="btn btn-sm bg-blue-400 "
+				class="btn-sm btn bg-blue-400 "
 				on:click={() => {
 					model.pause_gcode();
 				}}><span class="fa fa-pause" /></button>
 
 			<button
 				disabled={!$loaded_file || $workflowstate != 'paused'}
-				class="btn btn-sm bg-yellow-400"
+				class="btn-sm btn bg-yellow-400"
 				on:click={() => {
 					model.stop_gcode();
 				}}><span class="fa fa-stop" /></button>
 			<button
 				disabled={!$loaded_file || $workflowstate != 'idle'}
-				class="btn btn-sm bg-red-500"
+				class="btn-sm btn bg-red-500"
 				on:click={() => {
 					model.unload_gcode();
 				}}
@@ -98,15 +98,23 @@
 			<div class="text-label text-xs">Loaded File:</div>
 			<div class="text-sm italic">{$loaded_file || '<none>'}</div>
 		</div>
-		<div class="grid grid-cols-2 gap-1 p-1">
-			<div class="form-control max-w-xs">
-				<input
-					type="file"
-					id="gcode_upload"
-					bind:files={$files}
-					class="file-input-bordered file-input file-input-sm w-full max-w-xs" />
-			</div>
-			<button class="btn btn-sm" on:click={() => (load_file_requested = true)}>Browse...</button>
+		<div class="dropdown">
+			<label tabindex="0" class="btn-sm btn">Load G-code &nbsp;<span class="fa fa-chevron-down" /></label>
+			<ul tabindex="0" class="dropdown-content menu">
+				<li class="btn-sm btn">
+					<label>
+						<input
+							type="file"
+							id="gcode_upload"
+							bind:files={$files}
+							class="file-input-bordered file-input file-input-sm hidden w-full max-w-xs" />
+						Upload...
+					</label>
+				</li>
+				<li class="btn-sm btn">
+					<button class="" on:click={() => (load_file_requested = true)}>Browse...</button>
+				</li>
+			</ul>
 		</div>
 	</div>
 
@@ -135,7 +143,7 @@
 			<FileBrowser {model} bind:selected_file bind:file_path />
 		</div>
 		<div slot="actions">
-			<button disabled={!selected_file} class="btn btn-md bg-green-500" on:click={() => load_file()}
+			<button disabled={!selected_file} class="btn-md btn bg-green-500" on:click={() => load_file()}
 				>Select file</button>
 		</div>
 	</Modal>

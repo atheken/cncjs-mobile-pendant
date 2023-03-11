@@ -1,6 +1,8 @@
 import type ControllerState from './ControllerState';
 import type FeederStatus from './FeederStatus';
 import type SenderStatus from './SenderStatus';
+import type * as constants from './Constants';
+
 
 export interface Coordinate {
 	x: string;
@@ -9,7 +11,7 @@ export interface Coordinate {
 }
 
 export interface WorkflowState {
-	state: 'idle' | 'running';
+	state: constants.WorkflowState
 }
 
 export interface ControllerSettings {
@@ -28,7 +30,7 @@ export interface ControllerInfo {
 	sockets: string[];
 	ready: boolean;
 	controller: {
-		type: 'Grbl' | 'Marlin' | 'Smoothie' | 'TinyG';
+		type: constants.ControllerType
 		settings: ControllerSettings;
 		state: ControllerState;
 	};
