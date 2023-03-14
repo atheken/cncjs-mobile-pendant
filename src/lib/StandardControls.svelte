@@ -52,11 +52,14 @@
 
 <div>
 	<Divider>Machine Control</Divider>
-	<div class="grid grid-cols-4 justify-items-center">
+	<div class="machine-controls grid grid-cols-4 justify-items-center">
 		{#each primary_commands as p}
-			<div class="h-full w-full px-1 py-1 align-middle col-span-{p.width || 1}" class:aspect-video={p.square}>
-				<button class="btn btn-sm h-full w-full align-middle {p.classes?.join(' ')}" on:click={p.click}
-					><Icon icon={p.icon} />&nbsp;{p.name}</button>
+			<div
+				class="h-full w-full px-1 py-1 align-middle col-span-{p.width || 1}"
+				class:aspect-video={p.square}>
+				<button
+					class="btn btn-sm h-full w-full align-middle {p.classes?.join(' ')}"
+					on:click={p.click}><Icon icon={p.icon} />&nbsp;{p.name}</button>
 			</div>
 		{/each}
 	</div>

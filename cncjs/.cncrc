@@ -13,11 +13,16 @@
         },
         {
             "path": "/dev/ttySIM2"
+        },
+        {
+            "path": "/dev/ttySIM3"
+        },
+        {
+            "path": "/dev/ttySIM4"
         }
     ],
     "controller": [
-        "Grbl",
-        "Marlin"
+        "Grbl"
     ],
     "watchDirectory": "/root/data/",
     "secret": "it's a testing secret",

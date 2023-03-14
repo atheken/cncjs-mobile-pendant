@@ -20,14 +20,13 @@ services:
   grbl-sim:
     platform: linux/amd64
     environment:
-      SIM_COUNT: 2
       GRBL_COMMENT: ''
       GRBL_REALTIME_FACTOR: 1.0
       GRBL_TIME_STEP: 1.0
       GRBL_ARGS: '-n'
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
     image: atheken/grbl-sim
     restart: always
     expose:

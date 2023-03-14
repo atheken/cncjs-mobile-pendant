@@ -6,6 +6,7 @@
 	import Modal from './Modal.svelte';
 	import Divider from './Divider.svelte';
 	import HoldReasonModal from './HoldReasonModal.svelte';
+	import Stat from './Stat.svelte';
 
 	export let model: AppController;
 
@@ -60,7 +61,7 @@
 </script>
 
 <div class="grid grid-cols-1 justify-items-center">
-	<div class="flex w-full place-content-center">
+	<div class="flex w-full place-content-center machine-controls">
 		<div class="flex-basis-1/3"><span class="badge">{$workflowstate}</span></div>
 		<div class="flex-basis-2/3 px-2 text-white">
 			<button
@@ -119,23 +120,12 @@
 	</div>
 
 	<Divider>Job Stats</Divider>
-	<div class="w-9/12-md stats w-[97%] border-[1px] bg-slate-50">
-		<div class="stat">
-			<div class="stat-title">Progress</div>
-			{#if $controller?.sender && $controller.sender.total > 0}
-				<div class="stat-value">{Math.round(($controller.sender.sent / $controller.sender.total) * 100)}%</div>
-				<div class="stat-desc">Sent {$controller.sender.sent} of {$controller.sender.total}</div>
-			{:else}
-				<div class="stat-value">N/A</div>
-				<div class="stat-desc">Sent: N/A</div>
-			{/if}
-		</div>
-		<div class="stat">
-			<div class="stat-title">Time Remaining</div>
-			<div class="stat-value">{$time_stats.remaining}</div>
-			<div class="stat-desc">Ellapsed: {$time_stats.ellapsed}</div>
-		</div>
-	</div>
+	{#if $controller?.sender?.total > 0}
+	<Stat label="Progress" detail="Sent {$controller.sender.sent} of {$controller.sender.total}"
+	 value="{Math.round(($controller.sender.sent / $controller.sender.total) * 100)}%"/>
+	 <Stat label="Time Remaining" detail="Ellapsed: {$time_stats.ellapsed}"
+	 value="{$time_stats.remaining}"/>
+	{/if}
 
 	<Modal visible={load_file_requested} on:dismiss-requested={() => (load_file_requested = false)}>
 		<div slot="heading">Load G-code</div>

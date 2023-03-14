@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .btn {
+    @apply inline-block rounded border border-indigo-600 text-indigo-400 
+      px-12 py-3 text-sm font-medium hover:bg-none focus:outline-none focus:ring;
+  }
+}
+
+.btn-sm {
+  @apply px-2 py-1;
+}
+
+.machine-controls .btn {
+  @apply border-none text-current;
+}
+
 .zero-xy::before{
   @layer .font-mono;
   @layer .font-thin;
@@ -42,7 +57,7 @@
 .nav {
   @apply flex;
   @apply grow-0;
-  @apply border-t-[1px] border-accent bg-slate-100;
+  @apply border-t-[1px] border-cyan-300 bg-slate-100;
   
 }
 
@@ -50,16 +65,13 @@
   @apply border-0 text-slate-500;
   @apply p-2;
   @apply grow;
+
 }
 
-.btn {
-  @apply rounded-sm;
-  @apply border-none;
+.nav button.active {
+  @apply bg-cyan-300
 }
 
-.btn.btn-outline {
-  @apply border-[1px];
-}
 
 table,thead,tr,th,td {
   @apply rounded-lg;
@@ -68,10 +80,6 @@ table,thead,tr,th,td {
 
 thead {
   @apply bg-slate-200;
-}
-
-.badge {
-  @apply align-middle;
 }
 
 .port-status-pending {
@@ -94,12 +102,11 @@ thead {
   @apply text-red-900;
 }
 
-.mdl [slot=actions]
-{
-  @apply flex w-full place-content-end p-1 space-x-1;
-}
-
 .mdl [slot=heading]
 {
   @apply w-full bg-gray-200 p-2 text-center block;
+}
+
+.link {
+  @apply underline;
 }

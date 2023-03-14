@@ -12,6 +12,7 @@ import type SenderStatus from './models/api/SenderStatus';
 import type ControllerState from './models/api/ControllerState';
 import type FeederStatus from './models/api/FeederStatus';
 import type { ControllerInfo, ControllerSettings, WorkflowState } from './models/api/ControllerInfo';
+import type MacroInfo from './models/api/MacroInfo';
 
 export type ConnectionStatus = 'disconnected' | 'connected' | 'error' | 'pending';
 
@@ -28,7 +29,7 @@ export class AppController {
 	private _socket: io.socket;
 	private _token: string;
 
-	private _macros = writable<any[]>();
+	private _macros = writable<ListingResponse<MacroInfo>>({ records: [] });
 	private _commands = writable<ListingResponse<CommandInfo>>({ records: [] });
 	private _mdi_commands = writable<ListingResponse<MachineDeviceInterface>>({ records: [] });
 	private _controllers = writable<ControllerInfo[]>([]);
@@ -159,7 +160,7 @@ export class AppController {
 		return this._mdi_commands;
 	}
 
-	get macros(): Readable<any[]> {
+	get macros(): Readable<ListingResponse<MacroInfo>> {
 		return this._macros;
 	}
 
@@ -221,6 +222,14 @@ export class AppController {
 
 	get controller(): Readable<ControllerInfo> {
 		return this._controller;
+	}
+
+	execute_macro(macro: MacroInfo) {
+		let p = get(this._active_port)?.port;
+		let controller = get(this._controller);
+		if (controller?.port) {
+			this._socket.emit('command', controller?.port, 'macro:run', macro.id, controller?.sender?.context);
+		}
 	}
 
 	private async configure() {
@@ -285,8 +294,8 @@ export class AppController {
 	 */
 	private async load_config() {
 		this._commands.set(await this.request_json(`/api/commands?${new URLSearchParams({ pagination: 'false' })}`));
-		this._mdi_commands.set(await this.request_json('/api/mdi'));
-		this._macros.set(await this.request_json('/api/macros'));
+		this._mdi_commands.set(await this.request_json(`/api/mdi?${new URLSearchParams({ pagination: 'false' })}`));
+		this._macros.set(await this.request_json(`/api/macros?${new URLSearchParams({ pagination: 'false' })}`));
 	}
 
 	/**

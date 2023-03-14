@@ -32,3 +32,11 @@ seq 0
 seq 1
 seq 2
 exit
+$(getent hosts grbl-sim | awk '{print $1}')
+getent hosts grbl-sim | awk '{print $1}'
+dig grbl-sim
+exit
+cd /dev
+ls
+ls -alh
+exit

@@ -63,7 +63,7 @@
 						min="0"
 						max={units.length - 1}
 						bind:value={jog_unit}
-						class="range range-sm"
+						class="range w-full bg-red-300"
 						step="1"
 						class:range-error={jog_unit >= units.length - 1}
 						class:range-success={jog_unit <= units.length / 2}
@@ -76,12 +76,9 @@
 				</div>
 			</div>
 			<div class="grid grid-cols-1 p-1">
-				<div class="btn-group btn-group-vertical">
-					{#each zControls as ctl (ctl.id)}
-						<button class="btn-outline btn btn-info btn-sm" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
-					{/each}
-				</div>
-				<div />
+				{#each zControls as ctl (ctl.id)}
+					<button class="btn-outline btn btn-info btn-sm" on:click={() => jog(ctl)}><Icon icon={ctl.icon} /></button>
+				{/each}
 			</div>
 		</div>
 	</div>
