@@ -10,6 +10,7 @@
 	import type { AppController } from './AppController';
 
 	import PendantState from './models/local/PendantState';
+	import Toggle from './Toggle.svelte';
 	export let model: AppController;
 
 	let { ports, active_port } = model;
@@ -51,51 +52,46 @@
 	visible={$displayPanel}
 	on:dismiss-requested={() => displayPanel.set(false)}>
 	<span slot="heading">Connection Options</span>
-	<div slot="content" class="sm:ml-[30%] sm:w-[40%]">
-		<div class="flex flex-col gap-1 p-2">
-			<label>
-				<span class="text-sm">Serial Port:</span>
-				<select
-					class="rounded-sm border-gray-200 p-1 pr-12 text-sm shadow-sm"
-					bind:value={state.connection.port}>
-					{#each $ports as p (p.port)}
-						<option value={p.port} selected={state.connection.port == p.port}
-							>{p.port}</option>
-					{/each}
-				</select>
+	<div slot="content" class="mobile:ml-[20%] mobile:w-[60%]">
+		<div class="m-2 grid w-full grid-cols-12 content-center gap-2">
+			<div class="col-span-3 text-right text-sm">
+				<span class="align-middle">Serial Port:</span>
+			</div>
+			<select
+				class="col-span-7 rounded-sm border-gray-200 p-1 pr-12 text-sm shadow-sm"
+				bind:value={state.connection.port}>
+				{#each $ports as p (p.port)}
+					<option value={p.port} selected={state.connection.port == p.port}
+						>{p.port}</option>
+				{/each}
+			</select>
+			<div class="col-span-2">
 				<button class="btn btn-sm" on:click={() => model.refresh_serial_list()}>
 					<span class="fa fa-refresh" /></button>
-			</label>
-			<label>
-				<span class="text-sm">Baud Rate:</span>
-				<select
-					bind:value={state.connection.baudrate}
-					class="rounded-sm border-gray-200 p-1 pr-12 text-sm shadow-sm">
-					{#each rates as r (r)}
-						<option value={r} selected={state.connection.baudrate == r}
-							>{r}</option>
-					{/each}
-				</select>
-			</label>
-			<label>
-				<input
-					type="checkbox"
-					id="reconnect"
-					class="toggle"
+			</div>
+			<div class="col-span-3 text-right align-middle text-sm">Baud Rate:</div>
+			<select
+				bind:value={state.connection.baudrate}
+				class="col-span-7 rounded-sm border-gray-200 p-1 pr-12 text-sm shadow-sm">
+				{#each rates as r (r)}
+					<option value={r} selected={state.connection.baudrate == r}
+						>{r}</option>
+				{/each}
+			</select>
+
+			<div class="col-span-12 col-start-1 mobile:col-span-7 mobile:col-start-4">
+				<Toggle
+					label="Connect Automatically"
 					bind:checked={state.connection.autoconnect} />
-				Connect Automatically
-			</label>
-			<label>
-				<input
-					type="checkbox"
-					id="reconnect"
-					class="toggle"
+			</div>
+			<div class="sm:col-span-7 sm:col-start-4 col-span-12 col-start-1">
+				<Toggle
+					label="Use Hardware Flow Control"
 					bind:checked={state.connection.rtscts} />
-				Use Hardware Flow Control
-			</label>
+			</div>
 		</div>
 	</div>
-	<div slot="actions" class="grid sm:ml-[30%] sm:w-[40%]">
+	<div slot="actions" class="grid mobile:ml-[20%] mobile:w-[60%]">
 		<div class="flex justify-center space-x-1 p-2">
 			<button
 				class="btn-error btn-sm btn justify-end text-left"

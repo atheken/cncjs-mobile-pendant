@@ -8,10 +8,21 @@
 </script>
 
 <div>
+	<Divider
+		><span
+			class="after:content-['xs'] sm:after:content-['sm'] md:after:content-['md']"
+			>Size&nbsp;
+		</span></Divider>
+
 	<Divider>Debug</Divider>
 	<div class="flex flex-row place-content-center space-x-1">
-		<button class="btn-sm btn basis-[45%]" on:click={() => model.cncjs_command('statusreport')}>Status report</button>
-		<button class="btn-sm btn basis-[45%]" on:click={() => model.cncjs_command('probe')}>probe</button>
+		<button
+			class="btn-sm btn basis-[45%]"
+			on:click={() => model.cncjs_command('statusreport')}
+			>Status report</button>
+		<button
+			class="btn-sm btn basis-[45%]"
+			on:click={() => model.cncjs_command('probe')}>probe</button>
 	</div>
 	<Divider>Macros:</Divider>
 	<Macros {model} />
