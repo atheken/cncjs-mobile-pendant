@@ -13,5 +13,5 @@
 		<span
 			class="absolute inset-0 m-1 aspect-square h-4 rounded-full bg-white transition peer-checked:translate-x-6" />
 	</div>
-	<div class="grow px-1">{label}</div>
+	<div class="grow px-1 text-sm">{label}</div>
 </label>

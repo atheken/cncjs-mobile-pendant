@@ -53,23 +53,20 @@
 	on:dismiss-requested={() => displayPanel.set(false)}>
 	<span slot="heading">Connection Options</span>
 	<div slot="content" class="mobile:ml-[20%] mobile:w-[60%]">
-		<div class="m-2 grid w-full grid-cols-12 content-center gap-2">
-			<div class="col-span-3 text-right text-sm">
-				<span class="align-middle">Serial Port:</span>
-			</div>
+		<div class="m-2 grid w-full grid-cols-12 content-center items-center gap-2">
+			<div class="col-span-3 text-right text-sm">Serial Port:</div>
 			<select
 				class="col-span-7 rounded-sm border-gray-200 p-1 pr-12 text-sm shadow-sm"
 				bind:value={state.connection.port}>
 				{#each $ports as p (p.port)}
-					<option value={p.port} selected={state.connection.port == p.port}
-						>{p.port}</option>
+					<option value={p.port}> {p.port}</option>
 				{/each}
 			</select>
 			<div class="col-span-2">
 				<button class="btn btn-sm" on:click={() => model.refresh_serial_list()}>
 					<span class="fa fa-refresh" /></button>
 			</div>
-			<div class="col-span-3 text-right align-middle text-sm">Baud Rate:</div>
+			<div class="col-span-3 text-right text-sm">Baud Rate:</div>
 			<select
 				bind:value={state.connection.baudrate}
 				class="col-span-7 rounded-sm border-gray-200 p-1 pr-12 text-sm shadow-sm">
@@ -84,7 +81,7 @@
 					label="Connect Automatically"
 					bind:checked={state.connection.autoconnect} />
 			</div>
-			<div class="sm:col-span-7 sm:col-start-4 col-span-12 col-start-1">
+			<div class="col-span-12 col-start-1 mobile:col-span-7 mobile:col-start-4">
 				<Toggle
 					label="Use Hardware Flow Control"
 					bind:checked={state.connection.rtscts} />
