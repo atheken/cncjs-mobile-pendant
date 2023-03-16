@@ -110,3 +110,6 @@ thead {
 .link {
   @apply underline;
 }
+.button-group .btn {
+  @apply rounded-none;
+}

@@ -7,9 +7,11 @@
 	import Divider from './Divider.svelte';
 	import HoldReasonModal from './HoldReasonModal.svelte';
 	import Stat from './Stat.svelte';
+	import Dropdown from './Dropdown.svelte';
 
 	export let model: AppController;
 
+	let upload_input;
 	let controller = model.controller;
 	let load_file_requested = false;
 	let selected_file: DirectoryEntry;
@@ -56,16 +58,24 @@
 		}
 	});
 
-	let workflowstate = derived(model.controller, (c) => c?.workflow?.state || 'unknown');
+	let workflowstate = derived(
+		model.controller,
+		(c) => c?.workflow?.state || 'unknown'
+	);
 	let loaded_file = derived(model.controller, (c) => c?.sender.name);
 </script>
 
 <div class="grid grid-cols-1 justify-items-center">
-	<div class="flex w-full place-content-center machine-controls">
-		<div class="flex-basis-1/3"><span class="badge">{$workflowstate}</span></div>
-		<div class="flex-basis-2/3 px-2 text-white">
+	<div class="machine-controls flex w-full place-content-center">
+		<div class="flex-basis-1/3">
+			<span class="badge">{$workflowstate}</span>
+		</div>
+
+		<div
+			class="button-group inline-flex -space-x-px overflow-hidden rounded-md border bg-white shadow-sm">
 			<button
-				disabled={!$loaded_file || ($workflowstate != 'paused' && $workflowstate != 'idle')}
+				disabled={!$loaded_file ||
+					($workflowstate != 'paused' && $workflowstate != 'idle')}
 				class="btn-sm btn bg-green-400"
 				on:click={() => {
 					model.start_or_resume_gcode();
@@ -99,42 +109,59 @@
 			<div class="text-label text-xs">Loaded File:</div>
 			<div class="text-sm italic">{$loaded_file || '<none>'}</div>
 		</div>
-		<div class="dropdown">
-			<label tabindex="0" class="btn-sm btn">Load G-code &nbsp;<span class="fa fa-chevron-down" /></label>
-			<ul tabindex="0" class="dropdown-content menu">
-				<li class="btn-sm btn">
-					<label>
-						<input
-							type="file"
-							id="gcode_upload"
-							bind:files={$files}
-							class="file-input-bordered file-input file-input-sm hidden w-full max-w-xs" />
-						Upload...
-					</label>
-				</li>
-				<li class="btn-sm btn">
-					<button class="" on:click={() => (load_file_requested = true)}>Browse...</button>
-				</li>
-			</ul>
-		</div>
+		<Dropdown
+			title="Load G-code"
+			actions={[
+				{
+					label: 'From Watch Directory...',
+					action: () => (load_file_requested = true)
+				},
+				{
+					label: 'Upload...',
+					action: () => {
+						upload_input.click();
+					}
+				}
+			]} />
+
+		<input
+			type="file"
+			id="gcode_upload"
+			bind:this={upload_input}
+			bind:files={$files}
+			class="hidden" />
 	</div>
 
 	<Divider>Job Stats</Divider>
 	{#if $controller?.sender?.total > 0}
-	<Stat label="Progress" detail="Sent {$controller.sender.sent} of {$controller.sender.total}"
-	 value="{Math.round(($controller.sender.sent / $controller.sender.total) * 100)}%"/>
-	 <Stat label="Time Remaining" detail="Ellapsed: {$time_stats.ellapsed}"
-	 value="{$time_stats.remaining}"/>
+		<Stat
+			label="Progress"
+			detail="Sent {$controller.sender.sent} of {$controller.sender.total}"
+			value="{Math.round(
+				($controller.sender.sent / $controller.sender.total) * 100
+			)}%" />
+		<Stat
+			label="Time Remaining"
+			detail="Ellapsed: {$time_stats.ellapsed}"
+			value={$time_stats.remaining} />
 	{/if}
 
-	<Modal visible={load_file_requested} on:dismiss-requested={() => (load_file_requested = false)}>
+	<Modal
+		visible={load_file_requested}
+		on:dismiss-requested={() => (load_file_requested = false)}>
 		<div slot="heading">Load G-code</div>
-		<div slot="content">
-			<FileBrowser {model} bind:selected_file bind:file_path />
+		<div slot="content" class="m-1">
+			<FileBrowser
+				{model}
+				bind:selected_file
+				bind:file_path
+				commit_action={() => load_file()} />
 		</div>
-		<div slot="actions">
-			<button disabled={!selected_file} class="btn-md btn bg-green-500" on:click={() => load_file()}
-				>Select file</button>
+		<div slot="actions" class="flex w-full place-content-end p-1">
+			<button
+				disabled={!selected_file}
+				class="btn-sm btn"
+				on:click={() => load_file()}>Select file</button>
 		</div>
 	</Modal>
 	{#if $controller?.sender?.hold}
