@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     env:
-      node_version: 19.7
+      node_version: 19.8
     steps:
       - uses: actions/checkout@v3
       - name: Configure Node.js ${{ env.node_version }}
