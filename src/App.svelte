@@ -10,6 +10,7 @@
 	import DebugPanel from './lib/DebugPanel.svelte';
 	import ErrorPage from './lib/ErrorPage.svelte';
 	import type { Readable } from 'svelte/store';
+	import Preferences from './lib/Preferences.svelte';
 
 	let controller: AppController;
 	let active_port;
@@ -28,6 +29,11 @@
 			id: 'jog',
 			alt: 'Jog Machine',
 			icon: 'gamepad'
+		},
+		{
+			id: 'settings',
+			alt: 'Settings',
+			icon: 'gears'
 		},
 		{
 			id: 'debug',
@@ -67,6 +73,8 @@
 				<JobStatus model={controller} />
 			{:else if selected_tab_id == 'jog'}
 				<JogControls model={controller} />
+			{:else if selected_tab_id == 'settings'}
+				<Preferences model={controller} />
 			{:else if selected_tab_id == 'debug'}
 				<DebugPanel model={controller} />
 			{/if}

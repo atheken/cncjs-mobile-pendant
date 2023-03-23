@@ -3,6 +3,7 @@
 	import type { AppController } from './AppController';
 	import CoordinateDisplay from './CoordinateDisplay.svelte';
 	import Divider from './Divider.svelte';
+	import FullscreenNotice from './FullscreenNotice.svelte';
 	import Icon from './Icon.svelte';
 	import SpindleControl from './SpindleControl.svelte';
 
@@ -117,17 +118,12 @@
 	{/if}
 	<SpindleControl controller={model} current_machine={null} />
 {:else}
-	<div class="text-md  h-full bg-yellow-50 text-center text-amber-900">
-		<div class="relative top-1/3">
-			<p>
-				<span class="fa-regular fa-triangle-exclamation text-4xl" />
-			</p>
-			<p>Machine controls are unavailable</p>
-			<p>&nbsp;</p>
-			<p class="text-xs">
-				Machine controls are not currently unavailable because you are not
-				connected to a machine. Please connect to a machine to continue.
-			</p>
-		</div>
-	</div>
+	<FullscreenNotice>
+		<span slot="icon" class="fa-regular fa-triangle-exclamation" />
+		<p slot="heading">Machine controls are unavailable.</p>
+		<p slot="content">
+			Machine controls are not currently unavailable because you are not
+			connected to a machine. Please connect to a machine to continue.
+		</p>
+	</FullscreenNotice>
 {/if}

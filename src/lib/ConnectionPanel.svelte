@@ -55,9 +55,7 @@
 	<div slot="content" class="mobile:ml-[20%] mobile:w-[60%]">
 		<div class="m-2 grid w-full grid-cols-12 content-center items-center gap-2">
 			<div class="col-span-3 text-right text-sm">Serial Port:</div>
-			<select
-				class="col-span-7 rounded-sm border-gray-200 p-1 pr-12 text-sm shadow-sm"
-				bind:value={state.connection.port}>
+			<select class="select col-span-7" bind:value={state.connection.port}>
 				{#each $ports as p (p.port)}
 					<option value={p.port}> {p.port}</option>
 				{/each}
@@ -67,9 +65,7 @@
 					<span class="fa fa-refresh" /></button>
 			</div>
 			<div class="col-span-3 text-right text-sm">Baud Rate:</div>
-			<select
-				bind:value={state.connection.baudrate}
-				class="col-span-7 rounded-sm border-gray-200 p-1 pr-12 text-sm shadow-sm">
+			<select bind:value={state.connection.baudrate} class="select col-span-7">
 				{#each rates as r (r)}
 					<option value={r} selected={state.connection.baudrate == r}
 						>{r}</option>
@@ -91,14 +87,16 @@
 	<div slot="actions" class="grid mobile:ml-[20%] mobile:w-[60%]">
 		<div class="flex justify-center space-x-1 p-2">
 			<button
-				class="btn-error btn-sm btn justify-end text-left"
+				class="btn-stop btn-sm btn justify-end text-left"
 				disabled={$active_port?.port == null}
 				on:click={() => disconnect()}>
+				<span class="fa fa-handshake-simple-slash px-1" />
 				Disconnect</button>
 			<button
-				class="btn-success btn-sm btn justify-end text-right"
+				class="btn-go btn-sm btn justify-end text-right"
 				disabled={!state.connection.port}
-				on:click={() => connect()}>Connect</button>
+				on:click={() => connect()}
+				><span class="fa fa-bolt px-1" />Connect</button>
 		</div>
 	</div>
 </Modal>

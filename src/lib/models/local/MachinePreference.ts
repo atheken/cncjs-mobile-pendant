@@ -1,4 +1,4 @@
-import type { AXES, ControllerType } from './Constants';
+import type { AXES, ControllerType } from '../api/Constants';
 
 export default interface MachinePreference {
 	id: string;
@@ -29,6 +29,7 @@ export interface ProbeDefinition {
 	touchplate_thickness: number;
 	retraction: number;
 	execute_probe_on_tool_change: boolean;
+	apply_tool_offset: boolean;
 }
 
 export enum SpindleOptions {

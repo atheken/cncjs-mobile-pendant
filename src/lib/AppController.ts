@@ -11,10 +11,20 @@ import { derived, get, writable, type Readable } from 'svelte/store';
 import type SenderStatus from './models/api/SenderStatus';
 import type ControllerState from './models/api/ControllerState';
 import type FeederStatus from './models/api/FeederStatus';
-import type { ControllerInfo, ControllerSettings, WorkflowState } from './models/api/ControllerInfo';
+import type {
+	ControllerInfo,
+	ControllerSettings,
+	WorkflowState
+} from './models/api/ControllerInfo';
 import type MacroInfo from './models/api/MacroInfo';
+import type { MobilePendantPreferences } from './models/local/MachinePreference';
+import type MachineDefinition from './models/api/MachineDefinition';
 
-export type ConnectionStatus = 'disconnected' | 'connected' | 'error' | 'pending';
+export type ConnectionStatus =
+	| 'disconnected'
+	| 'connected'
+	| 'error'
+	| 'pending';
 
 export class AppController {
 	public static async Initialize(): Promise<AppController> {
@@ -31,7 +41,13 @@ export class AppController {
 
 	private _macros = writable<ListingResponse<MacroInfo>>({ records: [] });
 	private _commands = writable<ListingResponse<CommandInfo>>({ records: [] });
-	private _mdi_commands = writable<ListingResponse<MachineDeviceInterface>>({ records: [] });
+	private _mdi_commands = writable<ListingResponse<MachineDeviceInterface>>({
+		records: []
+	});
+
+	private _machines = writable<ListingResponse<MachineDefinition>>({
+		records: []
+	});
 	private _controllers = writable<ControllerInfo[]>([]);
 	private _ports = writable<SerialPort[]>([]);
 	private _sender_status = writable<SenderStatus>(null);
@@ -39,8 +55,12 @@ export class AppController {
 	private _workflow_state = writable<WorkflowState>(null);
 	private _controller_settings = writable<ControllerSettings>(null);
 	private _feeder_status = writable<FeederStatus>(null);
-	private _serial_connection_status = writable<ConnectionStatus>('disconnected');
-	private _server_connection_status = writable<ConnectionStatus>('disconnected');
+	private _serial_connection_status =
+		writable<ConnectionStatus>('disconnected');
+	private _server_connection_status =
+		writable<ConnectionStatus>('disconnected');
+
+	private _preferences = writable<MobilePendantPreferences>();
 
 	private _controller = derived(
 		[
@@ -87,7 +107,30 @@ export class AppController {
 	}
 
 	async get_state(key: string = ''): Promise<any> {
-		return await this.request_json('/api/state?' + new URLSearchParams({ key }));
+		try {
+			return await this.request_json(
+				'/api/state?' + new URLSearchParams({ key })
+			);
+		} catch {
+			console.log(`State for key ${key} not found, returning null.`);
+			return null;
+		}
+	}
+
+	async set_state(key: string = '', payload: any): Promise<any> {
+		return await this.request_json(
+			'/api/state?' + new URLSearchParams({ key }),
+			'POST',
+			{ body: JSON.stringify(payload) }
+		);
+	}
+
+	get pendant_prefs(): Readable<MobilePendantPreferences> {
+		return this._preferences;
+	}
+
+	async save_pendant_prefs(prefs: MobilePendantPreferences) {
+		await this.set_state('mobile_pendant_prefs', prefs);
 	}
 
 	start_or_resume_gcode() {
@@ -102,7 +145,13 @@ export class AppController {
 		}
 	}
 
-	jog(x: number, y: number, z: number, multiplier: number, mode: 'relative' | 'absolute') {
+	jog(
+		x: number,
+		y: number,
+		z: number,
+		multiplier: number,
+		mode: 'relative' | 'absolute'
+	) {
 		let location = x != null ? `X${x * multiplier} ` : '';
 		location += y != null ? `Y${y * multiplier} ` : '';
 		location += z != null ? `Z${z * multiplier} ` : '';
@@ -127,14 +176,27 @@ export class AppController {
 	}
 
 	stop_gcode() {
-		this.cncjs_command('command', get(this._active_port)?.port, 'gcode:stop', { force: true });
+		this.cncjs_command('command', get(this._active_port)?.port, 'gcode:stop', {
+			force: true
+		});
 	}
 
 	load_gcode(file: string, contents: string = null) {
 		if (contents != null) {
-			this.cncjs_command('command', get(this._active_port)?.port, 'gcode:load', file, contents);
+			this.cncjs_command(
+				'command',
+				get(this._active_port)?.port,
+				'gcode:load',
+				file,
+				contents
+			);
 		} else {
-			this.cncjs_command('command', get(this._active_port)?.port, 'watchdir:load', file);
+			this.cncjs_command(
+				'command',
+				get(this._active_port)?.port,
+				'watchdir:load',
+				file
+			);
 		}
 	}
 
@@ -162,6 +224,10 @@ export class AppController {
 
 	get macros(): Readable<ListingResponse<MacroInfo>> {
 		return this._macros;
+	}
+
+	get machines(): Readable<ListingResponse<MachineDefinition>> {
+		return this._machines;
 	}
 
 	//#region commands
@@ -207,7 +273,12 @@ export class AppController {
 	}
 
 	execute_mdi(record: MachineDeviceInterface) {
-		this.cncjs_command('command', get(this._active_port)?.port, 'gcode', record.command);
+		this.cncjs_command(
+			'command',
+			get(this._active_port)?.port,
+			'gcode',
+			record.command
+		);
 	}
 
 	//#endregion
@@ -228,7 +299,13 @@ export class AppController {
 		let p = get(this._active_port)?.port;
 		let controller = get(this._controller);
 		if (controller?.port) {
-			this._socket.emit('command', controller?.port, 'macro:run', macro.id, controller?.sender?.context);
+			this._socket.emit(
+				'command',
+				controller?.port,
+				'macro:run',
+				macro.id,
+				controller?.sender?.context
+			);
 		}
 	}
 
@@ -268,9 +345,15 @@ export class AppController {
 
 			this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
 			this._socket.on('sender:status', (s) => this._sender_status.set(s));
-			this._socket.on('controller:state', (_, state) => this._controller_state.set(state));
-			this._socket.on('workflow:state', (s) => this._workflow_state.set({ state: s }));
-			this._socket.on('controller:settings', (s) => this._controller_settings.set(s));
+			this._socket.on('controller:state', (_, state) =>
+				this._controller_state.set(state)
+			);
+			this._socket.on('workflow:state', (s) =>
+				this._workflow_state.set({ state: s })
+			);
+			this._socket.on('controller:settings', (s) =>
+				this._controller_settings.set(s)
+			);
 
 			// listen for connection events, these will establish this client as a serial port listener.
 			this._server_connection_status.subscribe((k) => {
@@ -293,9 +376,30 @@ export class AppController {
 	 * Load the Commands, MDI, and Macros from the API.
 	 */
 	private async load_config() {
-		this._commands.set(await this.request_json(`/api/commands?${new URLSearchParams({ pagination: 'false' })}`));
-		this._mdi_commands.set(await this.request_json(`/api/mdi?${new URLSearchParams({ pagination: 'false' })}`));
-		this._macros.set(await this.request_json(`/api/macros?${new URLSearchParams({ pagination: 'false' })}`));
+		this._commands.set(
+			await this.request_json(
+				`/api/commands?${new URLSearchParams({ pagination: 'false' })}`
+			)
+		);
+		this._mdi_commands.set(
+			await this.request_json(
+				`/api/mdi?${new URLSearchParams({ pagination: 'false' })}`
+			)
+		);
+		this._macros.set(
+			await this.request_json(
+				`/api/macros?${new URLSearchParams({ pagination: 'false' })}`
+			)
+		);
+
+		let x = await this.get_state('mobile_pendant_prefs');
+		this._preferences.set(x);
+
+		this._machines.set(
+			await this.request_json(
+				`/api/machines?${new URLSearchParams({ pagination: 'false' })}`
+			)
+		);
 	}
 
 	/**
@@ -316,7 +420,15 @@ export class AppController {
 		options.headers = h;
 		options.method = method;
 
-		return (await (await fetch(url, options)).json()) as T;
+		let response = await fetch(url, options);
+
+		if (response.status < 400) {
+			return (await response.json()) as T;
+		} else if (response.status == 404) {
+			return null;
+		} else {
+			throw `Request failed with status: [${response.status}] '${response.statusText}')`;
+		}
 	}
 
 	/**
@@ -328,7 +440,9 @@ export class AppController {
 		let cnc = JSON.parse(localStorage.getItem('cnc') || '{}');
 		token ||= cnc?.state?.session?.token;
 		if (!token) {
-			let result = (await (await fetch('/api/signin', { method: 'POST' })).json()) as SigninResponse;
+			let result = (await (
+				await fetch('/api/signin', { method: 'POST' })
+			).json()) as SigninResponse;
 			token = result.token;
 		}
 
@@ -345,14 +459,22 @@ export class AppController {
 		});
 
 		let io_events = {
-			error: ['connect_error', 'connect_timeout', 'error', 'reconnect_error', 'reconnect_failed'],
+			error: [
+				'connect_error',
+				'connect_timeout',
+				'error',
+				'reconnect_error',
+				'reconnect_failed'
+			],
 			connected: ['reconnect', 'connect'],
 			pending: ['reconnect_attempt', 'reconnecting'],
 			disconnected: ['disconnect']
 		};
 
 		Object.keys(io_events).forEach((key: ConnectionStatus) => {
-			io_events[key].forEach((event) => this._socket.on(event, () => this._server_connection_status.set(key)));
+			io_events[key].forEach((event) =>
+				this._socket.on(event, () => this._server_connection_status.set(key))
+			);
 		});
 	}
 

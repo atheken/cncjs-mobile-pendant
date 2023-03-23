@@ -113,3 +113,44 @@ thead {
 .button-group .btn {
   @apply rounded-none;
 }
+
+.input {
+  @apply rounded-sm border-gray-200 p-1 pr-1 text-sm shadow-sm;
+}
+
+.select {
+  @apply input pr-12;
+}
+
+.fit-center {
+  @apply grid w-full grid-cols-12 items-center gap-1 overscroll-contain p-1;
+}
+
+.notice-body [slot='icon'] {
+  @apply text-4xl text-center;
+}
+
+.notice-body [slot='heading'] {
+  @apply text-lg text-center;
+}
+
+.notice-warn {
+  @apply bg-yellow-50 text-yellow-800;
+}
+
+.notice-error {
+  @apply bg-white text-rose-900;
+}
+
+.btn-stop {
+  @apply text-rose-700  border-rose-700;
+}
+
+.btn-go {
+  @apply text-green-700 border-green-800;
+}
+
+.btn[disabled] {
+  @apply text-neutral-300 border-neutral-300;
+  @apply bg-transparent;
+}
