@@ -11,6 +11,7 @@
 	import ErrorPage from './lib/ErrorPage.svelte';
 	import type { Readable } from 'svelte/store';
 	import Preferences from './lib/Preferences.svelte';
+	import FullscreenNotice from './lib/FullscreenNotice.svelte';
 
 	let controller: AppController;
 	let active_port;
@@ -61,6 +62,14 @@
 {#if error || $connection_status == 'error' || $connection_status == 'disconnected'}
 	<ErrorPage {error} />
 {:else if !controller}
+	<FullscreenNotice motif="info">
+		<div slot="icon"><Icon icon="spinner" class="animate-spin" /></div>
+		<div slot="heading">Reticulating splines...</div>
+		<div slot="content">
+			Our elves are fast at work building all the widgets for this interface. We
+			should be good to go in a moment!
+		</div>
+	</FullscreenNotice>
 	<div class="text-center align-middle">Mobile Pendant is Loading</div>
 {:else}
 	<div class="flex h-screen flex-col overflow-hidden overscroll-none">
