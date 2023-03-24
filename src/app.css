@@ -44,6 +44,10 @@
   @apply w-full p-1 text-center align-middle text-sm;
 }
 
+.status {
+  @apply drop-shadow-sm;
+}
+
 .status.ok {
   @apply bg-green-300;
   @apply text-green-800;
@@ -55,21 +59,20 @@
 }
 
 .nav {
-  @apply flex;
-  @apply grow-0;
-  @apply border-t-[1px] border-cyan-300 bg-slate-100;
-  
+  @apply flex grow-0 bg-neutral-100;
+  @apply drop-shadow-toolbar;
 }
 
 .nav button {
-  @apply border-0 text-slate-500;
-  @apply p-2;
+  @apply border-0 text-slate-400;
+  @apply p-3 mb-3;
+  @apply text-sm;
   @apply grow;
 
 }
 
 .nav button.active {
-  @apply bg-cyan-300
+  @apply text-blue-600
 }
 
 .port-status-pending {
