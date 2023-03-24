@@ -31,6 +31,7 @@
 	<input
 		class="input grow"
 		type="number"
+		inputmode="numeric"
 		bind:value={speed}
 		on:change={() => {
 			apply_speed_change();
