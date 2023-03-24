@@ -10,6 +10,15 @@
 	export let commit_action: () => void;
 	export let selected_file: DirectoryEntry = null;
 
+	function formatBytes(bytes, decimals) {
+		if (bytes == 0) return '-';
+		var k = 1024,
+			dm = decimals || 2,
+			sizes = ['b', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+			i = Math.floor(Math.log(bytes) / Math.log(k));
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+	}
+
 	function select_entry(selection: DirectoryEntry) {
 		if (selection.type == 'f') {
 			selected_file = selection;
@@ -97,7 +106,7 @@
 												icon="folder" />{/if}
 										{f.name}</td>
 									<td>
-										{f.size}
+										{formatBytes(f.size, 1)}
 									</td>
 									<td
 										>{new Date(f.mtime).toLocaleString(undefined, {
