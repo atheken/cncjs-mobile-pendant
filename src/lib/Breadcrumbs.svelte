@@ -9,7 +9,7 @@
 </script>
 
 <nav aria-label="Breadcrumb">
-	<ol class="flex items-center gap-1 text-sm text-gray-600">
+	<ol class="flex items-center gap-1 text-gray-600">
 		{#each items as i, c}
 			<li
 				class="block transition hover:text-gray-700"

@@ -72,16 +72,6 @@
   @apply bg-cyan-300
 }
 
-
-table,thead,tr,th,td {
-  @apply rounded-lg;
-  @apply border-separate;
-}
-
-thead {
-  @apply bg-slate-200;
-}
-
 .port-status-pending {
   @apply bg-yellow-100;
   @apply text-yellow-800;
@@ -151,6 +141,25 @@ thead {
 }
 
 .btn[disabled] {
-  @apply text-neutral-300 border-neutral-300;
-  @apply bg-transparent;
+  @apply text-neutral-300 border-neutral-300 bg-transparent;
+}
+
+table {
+  @apply divide-y-2
+}
+
+th {
+  @apply whitespace-nowrap px-2 py-1 text-left font-medium text-gray-900
+}
+
+tbody {
+  @apply divide-y divide-gray-100
+}
+
+td {
+  @apply whitespace-nowrap px-2 py-1 font-medium text-gray-900
+}
+
+tr.active {
+  @apply bg-blue-200;
 }

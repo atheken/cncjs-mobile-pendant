@@ -3,7 +3,7 @@
 	import type { DirectoryEntry } from './models/local/DirectoryListing';
 	import Icon from './Icon.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
-	import { debug } from 'svelte/internal';
+	import FullscreenNotice from './FullscreenNotice.svelte';
 
 	export let model: AppController;
 	export let file_path: string;
@@ -50,10 +50,17 @@
 			items = items.concat(subs);
 		}
 	}
+
+	set_path('/');
 </script>
 
-<div class="m-1">
-	<Breadcrumbs bind:items />
+<div class="m-1 h-[60vh]">
+	<div class="flex items-center space-x-1">
+		<div class="text-xs text-neutral-400">Location:</div>
+		<div class="grow text-xs">
+			<Breadcrumbs bind:items />
+		</div>
+	</div>
 	{#key invalidator}
 		{#await model.list_files(file_path)}
 			<div class="text-info text-center align-middle text-sm">
@@ -61,15 +68,18 @@
 			</div>
 		{:then listing}
 			{#if listing.files.length == 0}
-				<div class="text-info text-center align-middle text-sm">
-					This directory is empty.
-				</div>
+				<FullscreenNotice motif="none">
+					<div slot="content" class="italic text-neutral-600">
+						This directory is empty.
+					</div>
+				</FullscreenNotice>
 			{:else}
 				<div class="select-none overflow-x-auto">
-					<table class="table-compact table w-full">
+					<table class="w-full text-xs">
 						<thead>
-							<th>Name</th>
-							<th>Last Modified</th>
+							<th class="text-neutral-500">Name</th>
+							<th class="text-neutral-500">Size</th>
+							<th class="text-neutral-500">Last Modified</th>
 						</thead>
 						<tbody>
 							{#each listing.files as f (f.name)}
@@ -86,7 +96,14 @@
 										>{#if f.type == 'f'}<Icon icon="file-lines" />{:else}<Icon
 												icon="folder" />{/if}
 										{f.name}</td>
-									<td>{f.mtime}</td>
+									<td>
+										{f.size}
+									</td>
+									<td
+										>{new Date(f.mtime).toLocaleString(undefined, {
+											timeStyle: 'short',
+											dateStyle: 'short'
+										})}</td>
 								</tr>
 							{/each}
 						</tbody>

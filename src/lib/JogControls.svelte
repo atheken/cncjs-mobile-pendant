@@ -81,7 +81,7 @@
 						min="0"
 						max={units.length - 1}
 						bind:value={jog_unit}
-						class="range w-full bg-red-300"
+						class="range input w-full bg-red-300"
 						step="1"
 						class:range-error={jog_unit >= units.length - 1}
 						class:range-success={jog_unit <= units.length / 2}
