@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { AppController } from './AppController';
 	import type { DirectoryEntry } from './models/local/DirectoryListing';
-	import Icon from './Icon.svelte';
+	import Icon from './FontAwesomeIcon.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
 	import FullscreenNotice from './FullscreenNotice.svelte';
 

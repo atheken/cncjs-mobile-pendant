@@ -1,6 +1,6 @@
 <script lang="ts">
 	import FullscreenNotice from './FullscreenNotice.svelte';
-	import Icon from './Icon.svelte';
+	import Icon from './FontAwesomeIcon.svelte';
 	export let error: Error;
 </script>
 

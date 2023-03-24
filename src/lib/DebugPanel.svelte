@@ -3,14 +3,18 @@
 	import Divider from './Divider.svelte';
 	import Macros from './Macros.svelte';
 
+	import Home from 'fa-solid/house.svg';
+
 	export let model: AppController;
 	let controller = model.controller;
 </script>
 
 <div>
+	<span class="inline-block aspect-square h-5"><Home /></span>
+
 	<Divider
 		><span
-			class="after:content-['xs'] sm:after:content-['sm'] md:after:content-['md']"
+			class="sm:after:content-['sm'] md:after:content-['md'] after:content-['xs']"
 			>Size&nbsp;
 		</span></Divider>
 

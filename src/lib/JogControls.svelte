@@ -4,7 +4,7 @@
 	import CoordinateDisplay from './CoordinateDisplay.svelte';
 	import Divider from './Divider.svelte';
 	import FullscreenNotice from './FullscreenNotice.svelte';
-	import Icon from './Icon.svelte';
+	import Icon from './FontAwesomeIcon.svelte';
 	import SpindleControl from './SpindleControl.svelte';
 
 	export let model: AppController;

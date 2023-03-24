@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { AppController } from './AppController';
 	import Divider from './Divider.svelte';
-	import Icon from './Icon.svelte';
+	import Icon from './FontAwesomeIcon.svelte';
 	export let model: AppController;
 
 	let primary_commands = [

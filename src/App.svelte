@@ -5,12 +5,18 @@
 	import JobStatus from './lib/JobStatus.svelte';
 	import { onMount } from 'svelte';
 	import ConnectionPanel from './lib/ConnectionPanel.svelte';
-	import Icon from './lib/Icon.svelte';
+	import Icon from './lib/FontAwesomeIcon.svelte';
 	import Status from './lib/Status.svelte';
 	import DebugPanel from './lib/DebugPanel.svelte';
 	import ErrorPage from './lib/ErrorPage.svelte';
 	import type { Readable } from 'svelte/store';
 	import Preferences from './lib/Preferences.svelte';
+
+	import terminal from '@fa-solid/terminal.svg';
+	import play from '@fa-solid/play.svg';
+	import gamepad from '@fa-solid/gamepad.svg';
+	import gears from '@fa-solid/gears.svg';
+	import bug from '@fa-solid/bug.svg';
 
 	let controller: AppController;
 	let active_port;
@@ -18,27 +24,27 @@
 		{
 			id: 'commands',
 			alt: 'Session Commands',
-			icon: 'terminal'
+			icon: terminal
 		},
 		{
 			id: 'job',
 			alt: 'Job Control',
-			icon: 'play'
+			icon: play
 		},
 		{
 			id: 'jog',
 			alt: 'Jog Machine',
-			icon: 'gamepad'
+			icon: gamepad
 		},
 		{
 			id: 'settings',
 			alt: 'Settings',
-			icon: 'gears'
+			icon: gears
 		},
 		{
 			id: 'debug',
 			alt: 'Debug',
-			icon: 'bug'
+			icon: bug
 		}
 	];
 	let selected_tab_id = 'commands';
@@ -86,7 +92,7 @@
 					on:click={() => (selected_tab_id = t.id)}
 					class:active={t.id == selected_tab_id}
 					class:bg-accent={t.id == selected_tab_id}
-					><Icon icon={t.icon} />
+					><Icon><svelte:component this={t.icon} /></Icon>
 				</button>
 			{/each}
 		</div>
