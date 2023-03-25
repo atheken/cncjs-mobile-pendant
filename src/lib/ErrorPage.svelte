@@ -12,5 +12,6 @@
 		this app to fix the problem. <button
 			class="link"
 			on:click={() => window.location.reload()}>Try Again...</button>
+		<div class="hidden"><pre>{JSON.stringify(error, null, ' ')}</pre></div>
 	</div>
 </FullscreenNotice>

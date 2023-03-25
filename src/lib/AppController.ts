@@ -1,4 +1,3 @@
-import io from 'socket.io-client';
 import { ulid } from 'ulid';
 import type { ConnectionSettings } from './models/local/ConnectionSettings';
 import DirectoryListing from './models/local/DirectoryListing';
@@ -19,6 +18,7 @@ import type {
 import type MacroInfo from './models/api/MacroInfo';
 import type { MobilePendantPreferences } from './models/local/MachinePreference';
 import type MachineDefinition from './models/api/MachineDefinition';
+//import { io } from '../global';
 
 export type ConnectionStatus =
 	| 'disconnected'
