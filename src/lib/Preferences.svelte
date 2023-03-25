@@ -4,8 +4,11 @@
 	import type { AppController } from './AppController';
 	import Divider from './Divider.svelte';
 	import FullscreenNotice from './FullscreenNotice.svelte';
+	import Modal from './Modal.svelte';
 	import type MachineDefinition from './models/api/MachineDefinition';
+	import type { ProbeDefinition } from './models/local/MachinePreference';
 	import type MachinePreference from './models/local/MachinePreference';
+	import ProbeOptions from './ProbeOptions.svelte';
 
 	export let model: AppController;
 
@@ -19,6 +22,18 @@
 
 	let machines = derived(model.machines, (f) => f.records);
 	machines.subscribe((f) => (machine ||= f[0]));
+
+	let activeprobe: ProbeDefinition = {};
+	let editingprobe = false;
+	let probe_edit_mode: 'Add' | 'Edit' = 'Add';
+	function editprobe(
+		probe: ProbeDefinition = {},
+		mode: 'Add' | 'Edit' = 'Add'
+	) {
+		probe_edit_mode = mode;
+		activeprobe = probe;
+		editingprobe = true;
+	}
 </script>
 
 {#if $machines.length > 0}
@@ -33,18 +48,27 @@
 			{#if machine != null}
 				<Divider>Machine Preferences</Divider>
 				<Divider>Probes</Divider>
-				<button class="btn btn-sm"
-					><span class="fa fa-plus" /> Add Probe...</button>
+				<button class="btn btn-sm" on:click={() => editprobe()}
+					><span class="fa fa-plus" />Add Probe...</button>
 			{/if}
 		</div>
 	</div>
+	<Modal
+		visible={editingprobe}
+		on:dismiss-requested={() => (editingprobe = false)}>
+		<div slot="heading">
+			{probe_edit_mode} Probe Definition
+		</div>
+		<ProbeOptions slot="content" probe={activeprobe} />
+		<div slot="actions"><button class="btn btn-sm">Save Probe</button></div>
+	</Modal>
 {:else}
 	<FullscreenNotice motif="warn">
 		<span slot="icon" class="fa fa-exclamation-triangle" />
 		<p slot="heading">No machines currently configured.</p>
 		<p slot="content">
-			Use the main Cncjs interface to define machines and then return to this
-			interface to configure machine preferences for the mobile pendant.
+			Use the main Cnc.js interface to define machines and then return to this
+			interface to configure preferences for the mobile pendant.
 		</p>
 	</FullscreenNotice>
 {/if}

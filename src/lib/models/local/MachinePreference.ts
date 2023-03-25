@@ -21,15 +21,22 @@ export enum UnitSelector {
 	mm = 'G21'
 }
 
+export enum ProbeCommands {
+	G38_2 = 'G38.2',
+	G38_3 = 'G38.3',
+	G38_4 = 'G38.4',
+	G38_5 = 'G38.5'
+}
+
 export interface ProbeDefinition {
-	axis: AXES;
-	command: 'G38.2' | 'G38.3' | 'G38.4' | 'G38.5';
-	depth: number;
-	feedrate: number;
-	touchplate_thickness: number;
-	retraction: number;
-	execute_probe_on_tool_change: boolean;
-	apply_tool_offset: boolean;
+	axis?: AXES;
+	command?: ProbeCommands;
+	depth?: number;
+	feedrate?: number;
+	touchplate_thickness?: number;
+	retraction?: number;
+	execute_probe_on_tool_change?: boolean;
+	apply_tool_offset?: boolean;
 }
 
 export enum SpindleOptions {

@@ -33,12 +33,19 @@
 .mdl {
   transform: translateY(100%);
   transition: 1.0s;
+  @apply drop-shadow-toolbar;
 }
 
 .mdl.mdl-visible {
   transition: 1.0s;
   transform: translateY(0%);
 }
+
+.mdl [slot=heading]
+{
+  @apply w-full bg-gray-100 p-1 text-center block text-sm text-neutral-600;
+}
+
 
 .status-header {
   @apply w-full p-1 text-center align-middle text-sm;
@@ -93,11 +100,6 @@
 .port-status-error {
   @apply bg-red-300;
   @apply text-red-900;
-}
-
-.mdl [slot=heading]
-{
-  @apply w-full bg-gray-200 p-2 text-center block;
 }
 
 .link {
