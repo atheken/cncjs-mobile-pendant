@@ -60,7 +60,7 @@ export class AppController {
 	private _server_connection_status =
 		writable<ConnectionStatus>('disconnected');
 
-	private _preferences = writable<MobilePendantPreferences>();
+	private _preferences = writable<Partial<MobilePendantPreferences>>({});
 
 	private _controller = derived(
 		[
@@ -125,11 +125,11 @@ export class AppController {
 		);
 	}
 
-	get pendant_prefs(): Readable<MobilePendantPreferences> {
+	get pendant_prefs(): Readable<Partial<MobilePendantPreferences>> {
 		return this._preferences;
 	}
 
-	async save_pendant_prefs(prefs: MobilePendantPreferences) {
+	async save_pendant_prefs(prefs: Partial<MobilePendantPreferences>) {
 		await this.set_state('mobile_pendant_prefs', prefs);
 	}
 
@@ -392,8 +392,7 @@ export class AppController {
 			)
 		);
 
-		let x = await this.get_state('mobile_pendant_prefs');
-		this._preferences.set(x);
+		this._preferences.set((await this.get_state('mobile_pendant_prefs')) || {});
 
 		this._machines.set(
 			await this.request_json(

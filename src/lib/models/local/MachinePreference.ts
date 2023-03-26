@@ -13,7 +13,7 @@ export default interface MachinePreference {
 export interface MobilePendantPreferences {
 	jog_unit: UnitSelector;
 	jog_increments: number[];
-	machine_preferences: MachinePreference[];
+	machine_preferences: Partial<MachinePreference>[];
 }
 
 export enum UnitSelector {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { derived } from 'svelte/store';
+	import { derived, get, writable } from 'svelte/store';
 	import type { AppController } from './AppController';
 	import Divider from './Divider.svelte';
 	import FullscreenNotice from './FullscreenNotice.svelte';
@@ -9,22 +9,39 @@
 		ProbeCommands,
 		type ProbeDefinition
 	} from './models/local/MachinePreference';
-	import type MachinePreference from './models/local/MachinePreference';
+
 	import ProbeOptions from './ProbeOptions.svelte';
-	import { AXES } from './models/api/Constants';
+	import { AXES, ControllerType } from './models/api/Constants';
+	import type MachinePreference from './models/local/MachinePreference';
+	import Segment from './Segment.svelte';
 
 	export let model: AppController;
 
-	let prefs = model.pendant_prefs;
-
-	let machine: MachineDefinition = null;
-
-	function pref_or_default(machine_id: string): Partial<MachinePreference> {
-		return null;
-	}
-
 	let machines = derived(model.machines, (f) => f.records);
+	let machine: MachineDefinition = null;
+	let machine_prefs: Partial<MachinePreference> = {};
+
 	machines.subscribe((f) => (machine ||= f[0]));
+
+	// let machine_prefs = writable<Partial<MachinePreference>>({});
+
+	// derived([model.pendant_prefs, machine], (e) =>
+	// 	machine_prefs.set(e[0].machine_preferences?.find((k) => k.id == e[1]?.id))
+	// );
+
+	// function save_prefs(){
+	// 	let prefs = get(model.pendant_prefs) || {};
+	// 	let mpref = get(machine_prefs);
+
+	// 	prefs.machine_preferences ||= [];
+	// 	if(mpref.id){
+	// 		prefs.machine_preferences = [
+	// 			...prefs.machine_preferences.filter((k) => k.id == mpref.id),
+	// 			mpref
+	// 		];
+	// 	}
+	// 	model.save_pendant_prefs(prefs);
+	// }
 
 	let activeprobe: Partial<ProbeDefinition> = {};
 	let editingprobe = false;
@@ -35,6 +52,11 @@
 	) {
 		probe.command ||= ProbeCommands.G38_2;
 		probe.axis ||= AXES.Z;
+		probe.depth ||=100;
+		probe.retraction ||=10;
+		probe.feedrate ||=100;
+		probe.touchplate_thickness ||= 15
+		probe.execute_probe_on_tool_change = true;
 
 		probe_edit_mode = mode;
 		activeprobe = probe;
@@ -55,14 +77,24 @@
 				<option value={m}>{m.name}</option>
 			{/each}
 		</select>
-		<div class="col-span-12">
-			{#if machine != null}
+		{console.log(machine_prefs)}
+		{#if machine != null}
+			<div class="col-span-12">
 				<Divider>Machine Preferences</Divider>
+				<Segment
+					bind:element={machine_prefs.type}
+					elements={[
+						ControllerType.GRBL,
+						ControllerType.MARLIN,
+						ControllerType.SMOOTHIE,
+						ControllerType.TINYG
+					]}
+					labelFn={(c) => c} />
 				<Divider>Probes</Divider>
 				<button class="btn btn-sm" on:click={() => editprobe()}
 					><span class="fa fa-plus" />Add Probe...</button>
-			{/if}
-		</div>
+			</div>
+		{/if}
 	</div>
 	<Modal
 		visible={editingprobe}

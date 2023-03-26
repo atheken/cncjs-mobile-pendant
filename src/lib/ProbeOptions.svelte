@@ -15,6 +15,13 @@
 	let pattern = '[0-9]+(.[0-9]+)?';
 	export let isValid = false;
 	export let saveProbe: () => void;
+	const commandDescriptions: Record<ProbeCommands, string> = {
+		[ProbeCommands.G38_2]:
+			'Probe toward workpiece, stop on contact, signal error if failure.',
+		[ProbeCommands.G38_3]: 'Probe toward workpiece, stop on contact.',
+		[ProbeCommands.G38_4]: 'Probe away from workpiece, stop on loss of contact, signal error if failure.',
+		[ProbeCommands.G38_5]: 'Probe away from workpiece, stop on loss of contact.'
+	};
 </script>
 
 <form
@@ -23,7 +30,7 @@
 		isValid = el.currentTarget.reportValidity();
 	}}>
 	<div class="grid grid-cols-12 items-center gap-2 overflow-scroll p-2">
-		<span class="col-span-4 text-right text-sm">Probe Axis:</span>
+		<span class="col-span-4 text-right text-sm">Axis:</span>
 		<div class="col-span-8">
 			<Segment
 				class="space-2"
@@ -31,7 +38,7 @@
 				labelFn={(a) => a}
 				bind:element={probe.axis} />
 		</div>
-		<span class="col-span-4 text-right text-sm">Probe Command:</span>
+		<span class="col-span-4 text-right text-sm">Command:</span>
 		<div class="col-span-8">
 			<Segment
 				elements={[
@@ -43,8 +50,9 @@
 				labelFn={(a) => a}
 				bind:element={probe.command} />
 		</div>
-		<span class="col-span-4 text-right text-sm"
-			>Touch plate thickness (mm):</span>
+		<span class="col-span-8 col-start-5 text-xs italic text-neutral-500"
+			>{commandDescriptions[probe.command]}</span>
+		<span class="col-span-4 text-right text-sm">Touch plate thickness:</span>
 		<input
 			{pattern}
 			class="input col-span-8 invalid:border-red-300"
@@ -53,7 +61,7 @@
 			step="any"
 			inputmode="decimal"
 			bind:value={probe.touchplate_thickness} />
-		<span class="col-span-4 text-right text-sm">Retraction (mm):</span>
+		<span class="col-span-4 text-right text-sm">Retraction:</span>
 		<input
 			{pattern}
 			class="input col-span-8 invalid:border-red-300"
@@ -62,7 +70,7 @@
 			inputmode="decimal"
 			required
 			bind:value={probe.retraction} />
-		<span class="col-span-4 text-right text-sm">Max probe depth:</span>
+		<span class="col-span-4 text-right text-sm">Max depth:</span>
 		<input
 			{pattern}
 			class="input col-span-8 invalid:border-red-300"
@@ -89,7 +97,7 @@
 		</div>
 		<div class="col-span-12">
 			<Toggle
-				label="Require Probe on Tool Change"
+				label="Require on Tool Change"
 				bind:checked={probe.execute_probe_on_tool_change} />
 		</div>
 	</div>

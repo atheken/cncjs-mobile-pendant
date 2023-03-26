@@ -11,7 +11,7 @@
 		''}">
 	{#each elements as a}
 		<button
-			on:click={() => (element = a)}
+			on:click|preventDefault={() => (element = a)}
 			class="min-w-[2rem] p-1 text-sm first:rounded-l-md last:rounded-r-md focus:relative"
 			class:bg-blue-500={element == a}
 			class:text-blue-500={element != a}
