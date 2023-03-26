@@ -10,8 +10,13 @@
 }
 
 .btn-sm {
-  @apply px-2 py-1;
+  @apply px-2 py-1 text-sm;
 }
+
+.btn-xs {
+  @apply px-2 py-1 text-xs;
+}
+
 
 .machine-controls .btn {
   @apply border-none text-current;
