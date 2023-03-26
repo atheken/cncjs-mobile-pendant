@@ -1,14 +1,17 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { derived } from 'svelte/store';
 	import type { AppController } from './AppController';
 	import Divider from './Divider.svelte';
 	import FullscreenNotice from './FullscreenNotice.svelte';
 	import Modal from './Modal.svelte';
 	import type MachineDefinition from './models/api/MachineDefinition';
-	import type { ProbeDefinition } from './models/local/MachinePreference';
+	import {
+		ProbeCommands,
+		type ProbeDefinition
+	} from './models/local/MachinePreference';
 	import type MachinePreference from './models/local/MachinePreference';
 	import ProbeOptions from './ProbeOptions.svelte';
+	import { AXES } from './models/api/Constants';
 
 	export let model: AppController;
 
@@ -16,23 +19,31 @@
 
 	let machine: MachineDefinition = null;
 
-	function pref_or_default(machine_id: string): MachinePreference {
+	function pref_or_default(machine_id: string): Partial<MachinePreference> {
 		return null;
 	}
 
 	let machines = derived(model.machines, (f) => f.records);
 	machines.subscribe((f) => (machine ||= f[0]));
 
-	let activeprobe: ProbeDefinition = {};
+	let activeprobe: Partial<ProbeDefinition> = {};
 	let editingprobe = false;
 	let probe_edit_mode: 'Add' | 'Edit' = 'Add';
 	function editprobe(
-		probe: ProbeDefinition = {},
+		probe: Partial<ProbeDefinition> = {},
 		mode: 'Add' | 'Edit' = 'Add'
 	) {
+		probe.command ||= ProbeCommands.G38_2;
+		probe.axis ||= AXES.Z;
+
 		probe_edit_mode = mode;
 		activeprobe = probe;
 		editingprobe = true;
+	}
+
+	function saveProbe() {
+		editingprobe = false;
+		activeprobe = {};
 	}
 </script>
 
@@ -55,12 +66,12 @@
 	</div>
 	<Modal
 		visible={editingprobe}
-		on:dismiss-requested={() => (editingprobe = false)}>
+		on:dismiss-requested={() => (editingprobe = false)}
+		class="">
 		<div slot="heading">
 			{probe_edit_mode} Probe Definition
 		</div>
-		<ProbeOptions slot="content" probe={activeprobe} />
-		<div slot="actions"><button class="btn btn-sm">Save Probe</button></div>
+		<ProbeOptions slot="content" bind:probe={activeprobe} {saveProbe} />
 	</Modal>
 {:else}
 	<FullscreenNotice motif="warn">

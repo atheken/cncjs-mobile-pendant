@@ -29,14 +29,14 @@ export enum ProbeCommands {
 }
 
 export interface ProbeDefinition {
-	axis?: AXES;
-	command?: ProbeCommands;
-	depth?: number;
-	feedrate?: number;
-	touchplate_thickness?: number;
-	retraction?: number;
-	execute_probe_on_tool_change?: boolean;
-	apply_tool_offset?: boolean;
+	axis: AXES;
+	command: ProbeCommands;
+	depth: number;
+	feedrate: number;
+	touchplate_thickness: number;
+	retraction: number;
+	execute_probe_on_tool_change: boolean;
+	apply_tool_offset: boolean;
 }
 
 export enum SpindleOptions {

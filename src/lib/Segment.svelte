@@ -2,15 +2,17 @@
 	export let elements: any[];
 	export let labelFn: (any) => string;
 	export let element: any;
+	let classes = '';
+	export { classes as class };
 </script>
 
-<span class="inline-block rounded-lg border border-blue-500">
+<span
+	class="inline-block divide-x divide-blue-500 rounded-md border border-blue-500 {classes ||
+		''}">
 	{#each elements as a}
 		<button
-			on:click={() => {
-				element = a;
-			}}
-			class="p-1 text-sm focus:relative"
+			on:click={() => (element = a)}
+			class="min-w-[2rem] p-1 text-sm first:rounded-l-md last:rounded-r-md focus:relative"
 			class:bg-blue-500={element == a}
 			class:text-blue-500={element != a}
 			class:text-white={element == a}>
