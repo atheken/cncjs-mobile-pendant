@@ -52,10 +52,10 @@
 	) {
 		probe.command ||= ProbeCommands.G38_2;
 		probe.axis ||= AXES.Z;
-		probe.depth ||=100;
-		probe.retraction ||=10;
-		probe.feedrate ||=100;
-		probe.touchplate_thickness ||= 15
+		probe.depth ||= 100;
+		probe.retraction ||= 10;
+		probe.feedrate ||= 100;
+		probe.touchplate_thickness ||= 15;
 		probe.execute_probe_on_tool_change = true;
 
 		probe_edit_mode = mode;
@@ -66,6 +66,7 @@
 	function saveProbe() {
 		editingprobe = false;
 		activeprobe = {};
+		machine_prefs.probes ||= [];
 	}
 </script>
 
@@ -77,11 +78,12 @@
 				<option value={m}>{m.name}</option>
 			{/each}
 		</select>
-		{console.log(machine_prefs)}
 		{#if machine != null}
 			<div class="col-span-12">
 				<Divider>Machine Preferences</Divider>
+				<div class="text-xs">Machine Type:</div>
 				<Segment
+					class="text-xs"
 					bind:element={machine_prefs.type}
 					elements={[
 						ControllerType.GRBL,
@@ -90,9 +92,22 @@
 						ControllerType.TINYG
 					]}
 					labelFn={(c) => c} />
+			</div>
+			<div class="col-span-12 grid gap-2">
 				<Divider>Probes</Divider>
-				<button class="btn btn-sm" on:click={() => editprobe()}
-					><span class="fa fa-plus" />Add Probe...</button>
+				{#if machine_prefs?.probes?.length > 0}
+					{#each machine_prefs?.probes as p}
+						{JSON.stringify(p)}
+					{/each}
+				{:else}
+					<div class="text-center text-xs">
+						No probes have been configured for this machine.
+					</div>
+				{/if}
+				<div class="text-right">
+					<button class="btn btn-xs" on:click={() => editprobe()}
+						><span class="fa fa-plus" />Add Probe</button>
+				</div>
 			</div>
 		{/if}
 	</div>
