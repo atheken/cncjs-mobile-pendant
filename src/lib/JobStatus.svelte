@@ -65,37 +65,103 @@
 	let loaded_file = derived(model.controller, (c) => c?.sender.name);
 </script>
 
-<div class="grid grid-cols-1 justify-items-center">
-	<div class="machine-controls flex w-full place-content-center">
-		<div class="flex-basis-1/3">
-			<span class="badge">{$workflowstate}</span>
+<div class="flex h-full flex-col">
+	<div class="grid grow grid-cols-1 justify-items-center scroll-auto">
+		<div class="machine-controls flex w-full place-content-center">
+			<div class="flex-basis-1/3">
+				<span class="badge">{$workflowstate}</span>
+			</div>
+		</div>
+		<Divider>Loaded G-code</Divider>
+		<div>
+			<div class="p-2 text-center">
+				<div class="text-label text-xs">Loaded File:</div>
+				<div class="text-sm italic">{$loaded_file || '<none>'}</div>
+			</div>
+			<Dropdown
+				title="Load G-code"
+				actions={[
+					{
+						label: 'From Watch Directory...',
+						action: () => (load_file_requested = true)
+					},
+					{
+						label: 'Upload...',
+						action: () => {
+							upload_input.click();
+						}
+					}
+				]} />
+
+			<input
+				type="file"
+				id="gcode_upload"
+				bind:this={upload_input}
+				bind:files={$files}
+				class="hidden" />
 		</div>
 
-		<div
-			class="button-group inline-flex -space-x-px overflow-hidden rounded-md border bg-white shadow-sm">
+		<Divider>Job Stats</Divider>
+		{#if $controller?.sender?.total > 0}
+			<Stat
+				label="Progress"
+				detail="Sent {$controller.sender.sent} of {$controller.sender.total}"
+				value="{Math.round(
+					($controller.sender.sent / $controller.sender.total) * 100
+				)}%" />
+			<Stat
+				label="Time Remaining"
+				detail="Ellapsed: {$time_stats.ellapsed}"
+				value={$time_stats.remaining} />
+		{/if}
+
+		<Modal
+			visible={load_file_requested}
+			on:dismiss-requested={() => (load_file_requested = false)}>
+			<div slot="heading">Load G-code</div>
+			<div slot="content" class="m-1">
+				<FileBrowser
+					{model}
+					bind:selected_file
+					bind:file_path
+					commit_action={() => load_file()} />
+			</div>
+			<div slot="actions" class="flex w-full place-content-end p-1">
+				<button
+					disabled={!selected_file}
+					class="btn-sm btn"
+					on:click={() => load_file()}>Select file</button>
+			</div>
+		</Modal>
+		{#if $controller?.sender?.hold}
+			<HoldReasonModal {model} />
+		{/if}
+	</div>
+	<div class="bg-white drop-shadow-toolbar">
+		<div class="button-group flex w-full -space-x-[1px] overflow-hidden">
 			<button
 				disabled={!$loaded_file ||
 					($workflowstate != 'paused' && $workflowstate != 'idle')}
-				class="btn-sm btn bg-green-400"
+				class="btn-sm btn grow border-0 bg-green-400 text-green-200"
 				on:click={() => {
 					model.start_or_resume_gcode();
 				}}><span class="fa fa-play" /></button>
 			<button
 				disabled={!$loaded_file || $workflowstate != 'running'}
-				class="btn-sm btn bg-blue-400 "
+				class="btn-sm btn grow border-0 bg-blue-400 text-blue-200"
 				on:click={() => {
 					model.pause_gcode();
 				}}><span class="fa fa-pause" /></button>
 
 			<button
 				disabled={!$loaded_file || $workflowstate != 'paused'}
-				class="btn-sm btn bg-yellow-400"
+				class="btn-sm btn grow border-0 bg-yellow-400 text-yellow-100"
 				on:click={() => {
 					model.stop_gcode();
 				}}><span class="fa fa-stop" /></button>
 			<button
 				disabled={!$loaded_file || $workflowstate != 'idle'}
-				class="btn-sm btn bg-red-500"
+				class="btn-sm btn grow border-0 bg-red-500 text-red-200"
 				on:click={() => {
 					model.unload_gcode();
 				}}
@@ -103,68 +169,4 @@
 			</button>
 		</div>
 	</div>
-	<Divider>Loaded G-code</Divider>
-	<div>
-		<div class="p-2 text-center">
-			<div class="text-label text-xs">Loaded File:</div>
-			<div class="text-sm italic">{$loaded_file || '<none>'}</div>
-		</div>
-		<Dropdown
-			title="Load G-code"
-			actions={[
-				{
-					label: 'From Watch Directory...',
-					action: () => (load_file_requested = true)
-				},
-				{
-					label: 'Upload...',
-					action: () => {
-						upload_input.click();
-					}
-				}
-			]} />
-
-		<input
-			type="file"
-			id="gcode_upload"
-			bind:this={upload_input}
-			bind:files={$files}
-			class="hidden" />
-	</div>
-
-	<Divider>Job Stats</Divider>
-	{#if $controller?.sender?.total > 0}
-		<Stat
-			label="Progress"
-			detail="Sent {$controller.sender.sent} of {$controller.sender.total}"
-			value="{Math.round(
-				($controller.sender.sent / $controller.sender.total) * 100
-			)}%" />
-		<Stat
-			label="Time Remaining"
-			detail="Ellapsed: {$time_stats.ellapsed}"
-			value={$time_stats.remaining} />
-	{/if}
-
-	<Modal
-		visible={load_file_requested}
-		on:dismiss-requested={() => (load_file_requested = false)}>
-		<div slot="heading">Load G-code</div>
-		<div slot="content" class="m-1">
-			<FileBrowser
-				{model}
-				bind:selected_file
-				bind:file_path
-				commit_action={() => load_file()} />
-		</div>
-		<div slot="actions" class="flex w-full place-content-end p-1">
-			<button
-				disabled={!selected_file}
-				class="btn-sm btn"
-				on:click={() => load_file()}>Select file</button>
-		</div>
-	</Modal>
-	{#if $controller?.sender?.hold}
-		<HoldReasonModal {model} />
-	{/if}
 </div>
