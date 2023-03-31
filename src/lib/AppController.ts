@@ -59,6 +59,7 @@ export class AppController {
 		writable<ConnectionStatus>('disconnected');
 	private _server_connection_status =
 		writable<ConnectionStatus>('disconnected');
+	private _loaded_gcode = writable();
 
 	private _preferences = writable<Partial<MobilePendantPreferences>>({});
 
@@ -104,6 +105,10 @@ export class AppController {
 
 	get serial_connection_status(): Readable<ConnectionStatus> {
 		return this._serial_connection_status;
+	}
+
+	get loaded_gcode(): Readable<any> {
+		return this._loaded_gcode;
 	}
 
 	async get_state(key: string = ''): Promise<any> {
@@ -340,8 +345,13 @@ export class AppController {
 
 			//// The following events should be used to update the machine controller:
 
-			//this._socket.on('gcode:load', (name, _) => this._loaded_gcode.set(name));
-			//this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
+			this._socket.on('gcode:load', (name, content: string) =>
+				this._loaded_gcode.set({
+					name,
+					content: content.split('\n').map((k) => k.trim())
+				})
+			);
+			this._socket.on('gcode:unload', () => this._loaded_gcode.set(null));
 
 			this._socket.on('feeder:status', (f) => this._feeder_status.set(f));
 			this._socket.on('sender:status', (s) => this._sender_status.set(s));

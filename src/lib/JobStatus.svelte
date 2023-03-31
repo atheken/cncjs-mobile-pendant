@@ -8,6 +8,8 @@
 	import HoldReasonModal from './HoldReasonModal.svelte';
 	import Stat from './Stat.svelte';
 	import Dropdown from './Dropdown.svelte';
+	import * as GCodePreview from 'gcode-preview';
+	import { onMount } from 'svelte';
 
 	export let model: AppController;
 
@@ -63,22 +65,36 @@
 		(c) => c?.workflow?.state || 'unknown'
 	);
 	let loaded_file = derived(model.controller, (c) => c?.sender.name);
+
+	let preview: GCodePreview.WebGLPreview;
+	let gcode_container: HTMLCanvasElement;
+
+	onMount(() => {
+		
+		preview = GCodePreview.init({
+			canvas: gcode_container,
+			allowDragNDrop: true,
+			debug: true
+		});
+
+		model.loaded_gcode.subscribe((g) => {
+			let content = g?.content;
+			if (content) {
+				preview.processGCode(content);
+				preview.render();
+			}
+		});
+	});
 </script>
 
-<div class="flex h-full flex-col">
-	<div class="grid grow grid-cols-1 justify-items-center scroll-auto">
-		<div class="machine-controls flex w-full place-content-center">
-			<div class="flex-basis-1/3">
-				<span class="badge">{$workflowstate}</span>
-			</div>
+<div class="scroll-contain flex h-full flex-col">
+	<div class="flex grow flex-col">
+		<div class="badge shadow-xs border text-center">
+			{$workflowstate}
 		</div>
-		<Divider>Loaded G-code</Divider>
-		<div>
-			<div class="p-2 text-center">
-				<div class="text-label text-xs">Loaded File:</div>
-				<div class="text-sm italic">{$loaded_file || '<none>'}</div>
-			</div>
+		<div class="w-full">
 			<Dropdown
+				class="w-full"
 				title="Load G-code"
 				actions={[
 					{
@@ -100,7 +116,13 @@
 				bind:files={$files}
 				class="hidden" />
 		</div>
-
+		<div class="w-full p-2">
+			<div class="text-label text-xs">Loaded File:</div>
+			<div class="text-sm italic">{$loaded_file || '<none>'}</div>
+		</div>
+		<canvas
+			bind:this={gcode_container}
+			class="aspect-square w-full bg-red-200" />
 		<Divider>Job Stats</Divider>
 		{#if $controller?.sender?.total > 0}
 			<Stat
